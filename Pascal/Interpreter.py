@@ -32,6 +32,7 @@ from Token import INTEGER, PLUS, UNKNOWN
 class Interpreter(object):
     def __init__(self, command):
         self.command = command
+        self.pos = 0
     
     def run(self):
         tokens_list = self.get_tokens()
@@ -39,9 +40,39 @@ class Interpreter(object):
 
     def get_tokens(self):
         tokens_list = []
-        for char in self.command:
-            tokens_list.append(Token(char))
+        while self.is_next_token():
+            tokens_list.append(self.get_next_token())
+        print(tokens_list)
         return tokens_list
+    
+    def get_next_token(self):
+        curr_token = self.command[self.pos]
+        if curr_token.isdigit():
+            self.pos += 1
+            while self.is_next_token():
+                next_token = self.peek()
+                if not next_token.isdigit():
+                    break
+                curr_token += next_token
+                self.pos += 1
+            return Token(curr_token)
+        elif curr_token == '+':
+            self.pos += 1
+            return Token(curr_token)
+        else:
+            raise Exception("No characters besides digits and spaces can be interpreted as of now")
+
+    def peek(self):
+        if not self.is_next_token():
+            raise Exception("Error in code: called peek but no next token")
+        return self.command[self.pos]
+    
+    '''
+        Returns true if there is a token after this current position
+        Return false otherwise
+    '''
+    def is_next_token(self):
+        return self.pos < len(self.command)
     
     def parse(self, tokens_list):
         if self.is_addition(tokens_list):
