@@ -45,6 +45,9 @@ class Interpreter(object):
         print(tokens_list)
         return tokens_list
     
+    '''
+        This assumes that the current token is not a space
+    '''
     def get_next_token(self):
         curr_token = self.command[self.pos]
         if curr_token.isdigit():
@@ -60,7 +63,7 @@ class Interpreter(object):
             self.pos += 1
             return Token(curr_token)
         else:
-            raise Exception("No characters besides digits and spaces can be interpreted as of now")
+            raise Exception("Invalid token: " + curr_token)
 
     def peek(self):
         if not self.is_next_token():
@@ -68,10 +71,13 @@ class Interpreter(object):
         return self.command[self.pos]
     
     '''
-        Returns true if there is a token after this current position
+        Returns true if there is a non space token after this current position
         Return false otherwise
     '''
     def is_next_token(self):
+        # Ignore all the current spaces
+        while self.pos < len(self.command) and self.command[self.pos] == ' ':
+            self.pos += 1
         return self.pos < len(self.command)
     
     def parse(self, tokens_list):
