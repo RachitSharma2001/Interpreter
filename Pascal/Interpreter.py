@@ -28,7 +28,7 @@ def is_addition(tokens_list):
         return True
     return False'''
 from Token import Token
-from Token import INTEGER, PLUS, UNKNOWN
+from Token import INTEGER, PLUS, MINUS, UNKNOWN
 class Interpreter(object):
     def __init__(self, command):
         self.command = command
@@ -59,7 +59,7 @@ class Interpreter(object):
                 curr_token += next_token
                 self.pos += 1
             return Token(curr_token)
-        elif curr_token == '+':
+        elif curr_token == '+' or curr_token == '-':
             self.pos += 1
             return Token(curr_token)
         else:
@@ -83,7 +83,12 @@ class Interpreter(object):
     def parse(self, tokens_list):
         if self.is_addition(tokens_list):
             return int(tokens_list[0].get_value()) + int(tokens_list[2].get_value())
+        elif self.is_subtraction(tokens_list):
+            return int(tokens_list[0].get_value()) - int(tokens_list[2].get_value())
         raise Exception("Unidentified expression given")
     
+    def is_subtraction(self, tokens_list):
+        return tokens_list[0].is_type(INTEGER) and tokens_list[1].is_type(MINUS) and tokens_list[2].is_type(INTEGER)
+
     def is_addition(self, tokens_list):
         return tokens_list[0].is_type(INTEGER) and tokens_list[1].is_type(PLUS) and tokens_list[2].is_type(INTEGER)
