@@ -9,7 +9,7 @@ class Interpreter(object):
         self.get_next_token()
         if self.curr_token == None:
             raise Exception("Syntax error - requirement of at least one token")
-        return self.parse()
+        return self.parse_add_minus()
     
     def get_next_token(self):
         self.skip_whitespace()
@@ -60,21 +60,31 @@ class Interpreter(object):
             raise Exception("Syntax Error - Invalid operand")
         return self.eat(INTEGER)
 
-    def parse(self):
+    def parse_add_minus(self):
+        sum = self.parse_mult_div()
+        op = self.curr_token
+        self.get_next_token()
+        while op != None:
+            right_half = self.parse_mult_div()
+            if op.is_type(PLUS):
+                sum += right_half
+            elif op.is_type(MINUS):
+                sum -= right_half
+            else:
+                raise Exception("Syntax error - unable to understand token: ")
+            op = self.curr_token
+            self.get_next_token()
+        return sum
+    
+    def parse_mult_div(self):
         sum = self.factor()
-        while self.curr_token != None:
-            if self.curr_token.is_type(PLUS):
-                self.eat(PLUS)
-                sum += self.factor()
-            elif self.curr_token.is_type(MINUS):
-                self.eat(MINUS)
-                sum -= self.factor()
-            elif self.curr_token.is_type(MUL):
+        while not (self.curr_token == None or self.curr_token.is_type(PLUS) or self.curr_token.is_type(MINUS)):
+            if self.curr_token.is_type(MUL):
                 self.eat(MUL)
                 sum *= self.factor()
             elif self.curr_token.is_type(DIV):
                 self.eat(DIV)
                 sum = int(sum / self.factor())
             else:
-                raise Exception("Syntax error - unable to understand token: ", self.curr_token)
+                raise Exception("Syntax error - unable to understand token: ")
         return sum
