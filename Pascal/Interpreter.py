@@ -6,12 +6,17 @@ class Interpreter(object):
         self.pos = 0
 
     def run(self):
-        if not self.is_next_token:
+        self.skip_whitespace()
+        if not self.is_next_token():
             raise Exception("Syntax error - requirement of at least one token")
         self.get_next_token()
         return self.parse()
     
     def get_next_token(self):
+        self.skip_whitespace()
+        if not self.is_next_token():
+            self.curr_token = None
+            return
         token = self.command[self.pos]
         if token.isdigit():
             self.pos += 1
@@ -28,22 +33,26 @@ class Interpreter(object):
         else:
             raise Exception("Invalid token: " + token)
     
-    def is_next_token(self):
-        # Ignore all the current spaces
-        while self.pos < len(self.command) and self.command[self.pos] == ' ':
+    def skip_whitespace(self):
+        while self.is_next_token() and self.command[self.pos] == ' ':
             self.pos += 1
+    
+    def is_next_token(self):
         return self.pos < len(self.command)
     
     def eat(self, type):
-        print("Curr token: ", self.curr_token)
         if type == INTEGER and self.curr_token.is_type(type):
             res = self.curr_token.get_value()
             if self.is_next_token():
                 self.get_next_token()
+            else:
+                self.curr_token = None
             return res
         elif (type == PLUS or type == MINUS or type == MUL or type == DIV) and self.curr_token.is_type(type):
             if self.is_next_token():
                 self.get_next_token()
+            else:
+                self.curr_token = None
             return 0
         raise Exception("Syntax error - unable to understand token")
     
@@ -51,9 +60,8 @@ class Interpreter(object):
         return self.eat(INTEGER)
 
     def parse(self):
-        print(self.curr_token)
         sum = self.factor()
-        while self.curr_token.get_type() in (PLUS, MINUS, MUL, DIV):
+        while self.curr_token != None:
             if self.curr_token.is_type(PLUS):
                 self.eat(PLUS)
                 sum += self.factor()
@@ -66,8 +74,6 @@ class Interpreter(object):
             elif self.curr_token.is_type(DIV):
                 self.eat(DIV)
                 sum = int(sum / self.factor())
-        print((self.curr_token.get_type() in (PLUS, MINUS, MUL, DIV)))
-        if self.is_next_token():
-            print("Extra token: ", self.curr_token, self.curr_token.get_type())
-            raise Exception("Syntax error - unable to understand token")
+            else:
+                raise Exception("Syntax error - unable to understand token: ", self.curr_token)
         return sum
