@@ -6,10 +6,9 @@ class Interpreter(object):
         self.pos = 0
 
     def run(self):
-        self.skip_whitespace()
-        if not self.is_next_token():
-            raise Exception("Syntax error - requirement of at least one token")
         self.get_next_token()
+        if self.curr_token == None:
+            raise Exception("Syntax error - requirement of at least one token")
         return self.parse()
     
     def get_next_token(self):
@@ -57,6 +56,8 @@ class Interpreter(object):
         raise Exception("Syntax error - unable to understand token")
     
     def factor(self):
+        if self.curr_token == None:
+            raise Exception("Syntax Error - Invalid operand")
         return self.eat(INTEGER)
 
     def parse(self):
