@@ -1,32 +1,3 @@
-'''
-def run(command):
-    tokens = get_tokens(command)
-    return parser(tokens)
-
-def get_tokens(command):
-    tokens_list = []
-    for char in command:
-        tokens_list.append(identify_type(char))
-    return tokens_list
-
-def identify_type(token):
-    if token.isdigit():
-        return ('Integer', int(token))
-    elif token == '+':
-        return ('Plus', token)
-    else:
-        return ('?', token)
-
-def parser(tokens_list):
-    if is_addition(tokens_list):
-        return tokens_list[0][1] + tokens_list[2][1]
-    else:
-        return "Syntax error: Unidentified expression given"
-
-def is_addition(tokens_list):
-    if tokens_list[0][0] == 'Integer' and tokens_list[1][0] == 'Plus' and tokens_list[2][0] == 'Integer':
-        return True
-    return False'''
 from Token import Token
 from Token import INTEGER, PLUS, MINUS, UNKNOWN
 class Interpreter(object):
@@ -81,14 +52,22 @@ class Interpreter(object):
         return self.pos < len(self.command)
     
     def parse(self, tokens_list):
-        if self.is_addition(tokens_list):
-            return int(tokens_list[0].get_value()) + int(tokens_list[2].get_value())
-        elif self.is_subtraction(tokens_list):
-            return int(tokens_list[0].get_value()) - int(tokens_list[2].get_value())
-        raise Exception("Unidentified expression given")
-    
-    def is_subtraction(self, tokens_list):
-        return tokens_list[0].is_type(INTEGER) and tokens_list[1].is_type(MINUS) and tokens_list[2].is_type(INTEGER)
+        if len(tokens_list) == 1 and tokens_list[0].is_type(INTEGER):
+            return tokens_list[0].get_value()
+        elif len(tokens_list) >= 3 and tokens_list[0].is_type(INTEGER):
+            sum = tokens_list[0].get_value()
 
-    def is_addition(self, tokens_list):
-        return tokens_list[0].is_type(INTEGER) and tokens_list[1].is_type(PLUS) and tokens_list[2].is_type(INTEGER)
+            for ind in range(1, len(tokens_list), 2):
+                if tokens_list[ind+1].is_type(INTEGER):
+                    if tokens_list[ind].is_type(PLUS):
+                        sum += tokens_list[ind+1].get_value()
+                    elif tokens_list[ind].is_type(MINUS):
+                        sum -= tokens_list[ind+1].get_value()
+                    else:
+                        raise Exception("Unidentified Expression given")
+                else:
+                    raise Exception("Unidentified Expression given")
+
+            return sum
+        else:
+            raise Exception("Unidentified Expression given")
