@@ -54,7 +54,7 @@ class Interpreter(object):
     def parse(self, tokens_list):
         if len(tokens_list) == 1 and tokens_list[0].is_type(INTEGER):
             return tokens_list[0].get_value()
-        elif len(tokens_list) >= 3 and tokens_list[0].is_type(INTEGER):
+        elif len(tokens_list) >= 3 and len(tokens_list) % 2 == 1 and tokens_list[0].is_type(INTEGER):
             sum = tokens_list[0].get_value()
 
             for ind in range(1, len(tokens_list), 2):
