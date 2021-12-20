@@ -1,5 +1,5 @@
 from Token import Token
-from Token import INTEGER, PLUS, MINUS, UNKNOWN
+from Token import INTEGER, PLUS, MINUS, MUL, DIV, UNKNOWN
 class Interpreter(object):
     def __init__(self, command):
         self.command = command
@@ -22,7 +22,7 @@ class Interpreter(object):
                 token += next_token
                 self.pos += 1
             self.curr_token = Token(token)
-        elif token == '+' or token == '-':
+        elif token == '+' or token == '-' or token == '*' or token == '/':
             self.pos += 1
             self.curr_token = Token(token)
         else:
@@ -41,7 +41,7 @@ class Interpreter(object):
             if self.is_next_token():
                 self.get_next_token()
             return res
-        elif (type == PLUS or type == MINUS) and self.curr_token.is_type(type):
+        elif (type == PLUS or type == MINUS or type == MUL or type == DIV) and self.curr_token.is_type(type):
             if self.is_next_token():
                 self.get_next_token()
             return 0
@@ -53,13 +53,21 @@ class Interpreter(object):
     def parse(self):
         print(self.curr_token)
         sum = self.factor()
-        while self.curr_token.is_type(PLUS) or self.curr_token.is_type(MINUS):
+        while self.curr_token.get_type() in (PLUS, MINUS, MUL, DIV):
             if self.curr_token.is_type(PLUS):
                 self.eat(PLUS)
                 sum += self.factor()
-            else:
+            elif self.curr_token.is_type(MINUS):
                 self.eat(MINUS)
                 sum -= self.factor()
+            elif self.curr_token.is_type(MUL):
+                self.eat(MUL)
+                sum *= self.factor()
+            elif self.curr_token.is_type(DIV):
+                self.eat(DIV)
+                sum = int(sum / self.factor())
+        print((self.curr_token.get_type() in (PLUS, MINUS, MUL, DIV)))
         if self.is_next_token():
+            print("Extra token: ", self.curr_token, self.curr_token.get_type())
             raise Exception("Syntax error - unable to understand token")
         return sum
