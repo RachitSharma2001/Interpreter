@@ -9,7 +9,6 @@ class Interpreter(object):
         self.get_next_token()
         if self.curr_token == None:
             raise Exception("Syntax error - requirement of at least one token")
-        print(self.curr_token)
         return self.parse_add_minus()
     
     def get_next_token(self):
@@ -72,13 +71,10 @@ class Interpreter(object):
 
     def parse_add_minus(self):
         sum = self.parse_mult_div()
-        print("Sum: ", sum)
         op = self.curr_token
-        print("Op: ", op)
         while not (op == None or op.get_type() in (LPAREN, RPAREN)):
             self.get_next_token()
             right_half = self.parse_mult_div()
-            print("Right half: ", right_half)
             if op.is_type(PLUS):
                 sum += right_half
             elif op.is_type(MINUS):
@@ -98,6 +94,5 @@ class Interpreter(object):
                 self.eat(DIV)
                 sum = int(sum / self.factor())
             else:
-                print("Exception casued by token: ", self.curr_token, (self.curr_token.is_type(PLUS)))
                 raise Exception("Syntax error - unable to understand token")
         return sum
