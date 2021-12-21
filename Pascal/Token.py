@@ -1,4 +1,4 @@
-INTEGER, PLUS, MINUS, MUL, DIV, UNKNOWN = 'Integer', 'Plus', 'Minus', 'MUL', 'DIV', '?'
+INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN, UNKNOWN = 'Integer', 'Plus', 'Minus', 'MUL', 'DIV', '(', ')', '?'
 class Token(object):
     def interpret_type(self, char):
         if char.isdigit():
@@ -11,6 +11,10 @@ class Token(object):
             return MUL
         elif char == '/':
             return DIV
+        elif char == '(':
+            return LPAREN
+        elif char == ')':
+            return RPAREN
         return UNKNOWN
     
     def __init__(self, char):
