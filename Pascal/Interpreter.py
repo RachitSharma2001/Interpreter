@@ -1,5 +1,6 @@
 from Token import Token
 from Token import INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN, UNKNOWN
+from Ast import Ast
 class Interpreter(object):
     def __init__(self, command):
         self.command = command
@@ -55,44 +56,37 @@ class Interpreter(object):
             return 0
         raise Exception("Syntax error - unable to understand token")
     
-    def factor(self):
-        if self.curr_token == None:
-            raise Exception("Syntax Error - Invalid operand")
-        
-        if self.curr_token.is_type(INTEGER):
-            return self.eat(INTEGER)
-        elif self.curr_token.is_type(LPAREN):
-            self.eat(LPAREN)
-            add_minus_sum = self.parse_add_minus()
-            self.eat(RPAREN)
-            return add_minus_sum
-        else:
-            raise Exception("Syntax Error - Invalid operand")
-
+    # Returns an AST 
     def parse_add_minus(self):
-        sum = self.parse_mult_div()
-        op = self.curr_token
-        while not (op == None or op.get_type() in (LPAREN, RPAREN)):
-            self.get_next_token()
-            right_half = self.parse_mult_div()
-            if op.is_type(PLUS):
-                sum += right_half
-            elif op.is_type(MINUS):
-                sum -= right_half
+        curr_tree = self.parse_mult_div()
+        while self.is_next_token():
+            if self.curr_token.is_type(PLUS):
+                self.get_next_token()
+                right_child = self.parse_mult_div()
+                curr_tree = Ast(curr_tree, PLUS, right_child)
+            elif self.curr_token.is_type(MINUS):
+                self.get_next_token()
+                right_child = self.parse_mult_div()
+                curr_tree = Ast(curr_tree, MINUS, right_child)
             else:
-                raise Exception("Syntax error - unable to understand token")
-            op = self.curr_token
-        return sum
+                raise Exception("Syntax error - invalid operand")
+        return curr_tree 
     
     def parse_mult_div(self):
-        sum = self.factor()
-        while not (self.curr_token == None or self.curr_token.get_type() in (PLUS, MINUS, LPAREN, RPAREN)):
+        curr_tree = self.factor()
+        while self.is_next_token() and not (self.curr_token.get_type() in (PLUS, MINUS)):
             if self.curr_token.is_type(MUL):
-                self.eat(MUL)
-                sum *= self.factor()
+                self.get_next_token()
+                right_child = self.factor()
+                curr_tree = Ast(curr_tree, MUL, right_child)
             elif self.curr_token.is_type(DIV):
-                self.eat(DIV)
-                sum = int(sum / self.factor())
+                self.get_next_token()
+                right_child = self.factor()
+                curr_tree = Ast(curr_tree, DIV, right_child)
             else:
-                raise Exception("Syntax error - unable to understand token")
-        return sum
+                raise Exception("Syntax error - invalid operand")
+        return curr_tree
+    
+    def factor(self):
+        res = self.eat(INTEGER)
+        return Ast(None, res, None)
