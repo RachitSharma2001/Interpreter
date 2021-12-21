@@ -10,7 +10,8 @@ class Interpreter(object):
         self.get_next_token()
         if self.curr_token == None:
             raise Exception("Syntax error - requirement of at least one token")
-        return self.parse_add_minus()
+        parsed_ast = self.parse_add_minus()
+        return self.interpret(parsed_ast)
     
     def get_next_token(self):
         self.skip_whitespace()
@@ -59,34 +60,62 @@ class Interpreter(object):
     # Returns an AST 
     def parse_add_minus(self):
         curr_tree = self.parse_mult_div()
-        while self.is_next_token():
+        while self.is_next_token() and not (self.curr_token.get_type() in (LPAREN, RPAREN)):
             if self.curr_token.is_type(PLUS):
-                self.get_next_token()
+                self.eat(PLUS)
                 right_child = self.parse_mult_div()
-                curr_tree = Ast(curr_tree, PLUS, right_child)
+                curr_tree = Ast(curr_tree, '+', right_child)
             elif self.curr_token.is_type(MINUS):
-                self.get_next_token()
+                self.eat(MINUS)
                 right_child = self.parse_mult_div()
-                curr_tree = Ast(curr_tree, MINUS, right_child)
+                curr_tree = Ast(curr_tree, '-', right_child)
             else:
                 raise Exception("Syntax error - invalid operand")
         return curr_tree 
     
     def parse_mult_div(self):
         curr_tree = self.factor()
-        while self.is_next_token() and not (self.curr_token.get_type() in (PLUS, MINUS)):
+        while self.is_next_token() and not (self.curr_token.get_type() in (PLUS, MINUS, LPAREN, RPAREN)):
             if self.curr_token.is_type(MUL):
-                self.get_next_token()
+                self.eat(MUL)
                 right_child = self.factor()
-                curr_tree = Ast(curr_tree, MUL, right_child)
+                curr_tree = Ast(curr_tree, '*', right_child)
             elif self.curr_token.is_type(DIV):
-                self.get_next_token()
+                self.eat(DIV)
                 right_child = self.factor()
-                curr_tree = Ast(curr_tree, DIV, right_child)
+                curr_tree = Ast(curr_tree, '/', right_child)
             else:
                 raise Exception("Syntax error - invalid operand")
         return curr_tree
     
     def factor(self):
-        res = self.eat(INTEGER)
-        return Ast(None, res, None)
+        if self.curr_token.is_type(INTEGER):     
+            res = self.eat(INTEGER)
+            return Ast(None, res, None)
+        elif self.curr_token.is_type(LPAREN):
+            self.eat(LPAREN)
+            curr_tree = self.parse_add_minus()
+            self.eat(RPAREN)
+            return curr_tree
+        else:
+            raise Exception("Syntax error - invalid operand")
+
+    def interpret(self, parsed_ast):
+        post_order = parsed_ast.post_order()
+        integer_stack = []
+        for val in post_order:
+            if val in ('+', '-', '*', '/'):
+                if val == '+':
+                    integer_stack[-2] += integer_stack[-1]
+                elif val == '-':
+                    integer_stack[-2] -= integer_stack[-1]
+                elif val == '*':
+                    integer_stack[-2] *= integer_stack[-1]
+                else:
+                    integer_stack[-2] /= integer_stack[-1]
+                integer_stack.pop()
+            else:
+                integer_stack.append(val)
+        if len(integer_stack) != 1:
+            raise Exception("Program error - stack len not 1")
+        return integer_stack[0]

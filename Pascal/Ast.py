@@ -15,7 +15,8 @@ class Ast(object):
     def post_order(self):
         order = []
         if self.left_child != None:
-            order = self.left_child.post_order()
+            order += self.left_child.post_order()
         if self.right_child != None:
-            order.append(self.right_child.post_order())
+            order += self.right_child.post_order()
         order.append(self.node)
+        return order
