@@ -20,3 +20,13 @@ class Ast(object):
             order += self.right_child.post_order()
         order.append(self.node)
         return order
+
+class Compound_Node(object):
+    def __init__(self, node_list):
+        self.children = node_list 
+    
+    def __repr__(self):
+        str = ""
+        for child in self.children:
+            str += child.__repr__()
+        return str + '\n'
