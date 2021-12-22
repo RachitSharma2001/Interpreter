@@ -89,7 +89,13 @@ class Interpreter(object):
         return curr_tree
     
     def factor(self):
-        if self.curr_token.is_type(INTEGER):     
+        if self.curr_token.is_type(PLUS):
+            self.eat(PLUS)
+            return Ast(self.factor(), 'u+', None)
+        elif self.curr_token.is_type(MINUS):
+            self.eat(MINUS)
+            return Ast(self.factor(), 'u-', None)
+        elif self.curr_token.is_type(INTEGER):     
             res = self.eat(INTEGER)
             return Ast(None, res, None)
         elif self.curr_token.is_type(LPAREN):
@@ -114,6 +120,9 @@ class Interpreter(object):
                 else:
                     integer_stack[-2] /= integer_stack[-1]
                 integer_stack.pop()
+            elif val in ('u+', 'u-'):
+                if val == 'u-':
+                    integer_stack[-1] *= -1
             else:
                 integer_stack.append(val)
         if len(integer_stack) != 1:
