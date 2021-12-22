@@ -1,24 +1,36 @@
-INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN, UNKNOWN = 'Integer', 'Plus', 'Minus', 'MUL', 'DIV', '(', ')', '?'
+BEGIN, END, DOT, ID, ASSIGN, SEMI = 'Begin', 'End', 'Dot', 'Id', 'Assign', 'Semi'
+INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN = 'Integer', 'Plus', 'Minus', 'MUL', 'DIV', '(', ')'
 class Token(object):
-    def interpret_type(self, char):
-        if char.isdigit():
+    def interpret_type(self, lexeme):
+        if lexeme == 'Begin':
+            return BEGIN
+        elif lexeme == 'End':
+            return END
+        elif lexeme == '.':
+            return DOT
+        elif lexeme == ':=':
+            return ASSIGN 
+        elif lexeme == ';':
+            return SEMI
+        elif lexeme.isdigit():
             return INTEGER
-        elif char == '+':
+        elif lexeme == '+':
             return PLUS
-        elif char == '-':
+        elif lexeme == '-':
             return MINUS
-        elif char == '*':
+        elif lexeme == '*':
             return MUL
-        elif char == '/':
+        elif lexeme == '/':
             return DIV
-        elif char == '(':
+        elif lexeme == '(':
             return LPAREN
-        elif char == ')':
+        elif lexeme == ')':
             return RPAREN
-        return UNKNOWN
+        # if its none of the above, then likely a variable
+        return ID
     
-    def __init__(self, char):
-        self.curr_token = (self.interpret_type(char), char)
+    def __init__(self, lexeme):
+        self.curr_token = (self.interpret_type(lexeme), lexeme)
     
     def is_type(self, given_type):
         return self.curr_token[0] == given_type
