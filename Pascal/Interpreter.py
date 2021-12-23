@@ -10,6 +10,9 @@ class Interpreter(object):
 
     def run(self):
         self.curr_token = self.get_next_token()
+        '''while self.curr_token != None:
+            print(self.curr_token)
+            self.curr_token = self.get_next_token()'''
         if self.curr_token == None:
             raise Exception("Syntax error - requirement of at least one token")
         parsed_ast = self.program()
@@ -113,7 +116,10 @@ class Interpreter(object):
         return Ast(var_node, ':=', expr_node)
     
     def expr(self):
+        print("In expr before term, curr token: ", self.curr_token)
         curr_tree = self.term()
+        print("In expr, afer term(), curr token: ", self.curr_token)
+        print("The tree: ", curr_tree)
         while not self.at_end():
             if self.curr_token.is_type(PLUS):
                 self.eat(PLUS)
@@ -154,9 +160,11 @@ class Interpreter(object):
             return Ast(None, res, None)
         elif self.curr_token.is_type(LPAREN):
             self.eat(LPAREN)
-            curr_tree = self.parse_add_minus()
+            curr_tree = self.expr()
             self.eat(RPAREN)
             return curr_tree
+        elif self.curr_token.is_type(ID):
+            return self.variable()
         else:
             raise Exception("Syntax error - invalid operand")
     

@@ -25,8 +25,9 @@ class Compound_Node(object):
     def __init__(self, node_list):
         self.children = node_list 
     
-    def __repr__(self):
-        str = ""
+    def post_order(self):
+        order = []
         for child in self.children:
-            str += child.__repr__()
-        return str + '\n'
+            for sub_child in child.post_order():
+                order.append(sub_child)
+        return order

@@ -4,4 +4,4 @@ while True:
     if input_str == 'Done':
         break
     inter = Interpreter(input_str)
-    print(inter.run())
+    print(inter.run().post_order())
