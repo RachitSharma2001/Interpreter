@@ -36,7 +36,9 @@ class Token(object):
         return self.curr_token[0] == given_type
 
     def get_value(self):
-        return int(self.curr_token[1])
+        if self.curr_token[1].isdigit():
+            return int(self.curr_token[1])
+        return self.curr_token[1]
     
     def get_type(self):
         return self.curr_token[0]

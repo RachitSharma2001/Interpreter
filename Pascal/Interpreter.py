@@ -1,8 +1,8 @@
 from Token import Token
 from Token import INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN
 from Token import BEGIN, END, DOT, ID, ASSIGN, SEMI
-from Ast import Ast
-from Ast import Compound_Node
+from Ast import Regular, Compound, Assign, Variable 
+
 class Interpreter(object):
     def __init__(self, command):
         self.command = command
@@ -54,6 +54,7 @@ class Interpreter(object):
             return Token(token)
         else:
             raise Exception('Invalid Token: ', token)
+
     ''' Skips over white space '''
     def skip_whitespace(self):
         while not self.at_end() and self.command[self.pos] == ' ':
@@ -89,7 +90,7 @@ class Interpreter(object):
         self.eat(BEGIN)
         tree_list = self.statement_list()
         self.eat(END)
-        return Compound_Node(tree_list)
+        return Compound(tree_list)
     
     def statement_list(self):
         list_nodes = [self.statement()]
@@ -113,22 +114,19 @@ class Interpreter(object):
         var_node = self.variable()
         self.eat(ASSIGN)
         expr_node = self.expr()
-        return Ast(var_node, ':=', expr_node)
+        return Assign(var_node, expr_node)
     
     def expr(self):
-        print("In expr before term, curr token: ", self.curr_token)
         curr_tree = self.term()
-        print("In expr, afer term(), curr token: ", self.curr_token)
-        print("The tree: ", curr_tree)
         while not self.at_end():
             if self.curr_token.is_type(PLUS):
                 self.eat(PLUS)
                 right_child = self.term()
-                curr_tree = Ast(curr_tree, '+', right_child)
+                curr_tree = Regular(curr_tree, '+', right_child)
             elif self.curr_token.is_type(MINUS):
                 self.eat(MINUS)
                 right_child = self.term()
-                curr_tree = Ast(curr_tree, '-', right_child)
+                curr_tree = Regular(curr_tree, '-', right_child)
             else:
                 break
         return curr_tree 
@@ -139,11 +137,11 @@ class Interpreter(object):
             if self.curr_token.is_type(MUL):
                 self.eat(MUL)
                 right_child = self.factor()
-                curr_tree = Ast(curr_tree, '*', right_child)
+                curr_tree = Regular(curr_tree, '*', right_child)
             elif self.curr_token.is_type(DIV):
                 self.eat(DIV)
                 right_child = self.factor()
-                curr_tree = Ast(curr_tree, '/', right_child)
+                curr_tree = Regular(curr_tree, '/', right_child)
             else:
                 break
         return curr_tree
@@ -151,13 +149,13 @@ class Interpreter(object):
     def factor(self):
         if self.curr_token.is_type(PLUS):
             self.eat(PLUS)
-            return Ast(self.factor(), 'u+', None)
+            return Regular(self.factor(), 'u+', None)
         elif self.curr_token.is_type(MINUS):
             self.eat(MINUS)
-            return Ast(self.factor(), 'u-', None)
+            return Regular(self.factor(), 'u-', None)
         elif self.curr_token.is_type(INTEGER):     
             res = self.eat(INTEGER)
-            return Ast(None, res, None)
+            return Regular(None, res, None)
         elif self.curr_token.is_type(LPAREN):
             self.eat(LPAREN)
             curr_tree = self.expr()
@@ -170,5 +168,5 @@ class Interpreter(object):
     
     def variable(self):
         var = self.eat(ID)
-        return Ast(None, var, None)
+        return Variable(var)
 
