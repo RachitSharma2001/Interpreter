@@ -2,7 +2,7 @@ from Token import Token
 from Token import INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN
 from Token import BEGIN, END, DOT, ID, ASSIGN, SEMI
 from Ast import Regular, Compound, Assign, Variable 
-
+from Ast import REGULAR_NODE, COMPOUND_NODE, ASSIGN_NODE, VARIABLE_NODE
 class Interpreter(object):
     def __init__(self, command):
         self.command = command
@@ -16,8 +16,8 @@ class Interpreter(object):
         if self.curr_token == None:
             raise Exception("Syntax error - requirement of at least one token")
         parsed_ast = self.program()
-        return parsed_ast
-        #return self.program(parsed_ast)
+        print(parsed_ast.post_order())
+        return self.interpret(parsed_ast)
     
     # Functions for the lexer  
     ''' Returns the next token ''' 
@@ -68,7 +68,7 @@ class Interpreter(object):
         # If the type has a sought-after value, we would want to return it
         if type == INTEGER or type == ID:
             if self.curr_token.is_type(type):
-                res = self.curr_token
+                res = (self.curr_token.get_type(), self.curr_token.get_value())
                 self.curr_token = self.get_next_token()
                 return res
             raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
@@ -170,3 +170,35 @@ class Interpreter(object):
         var = self.eat(ID)
         return Variable(var)
 
+    # Functions for the interpreter
+    def interpret(self, ast_tree):
+        post_order_list = ast_tree.post_order()
+        global_vars = {}
+        stack = []
+        for child in post_order_list:
+            if child in ('+', '-', '*', '/'):
+                if child == '+':
+                    stack[-2] += stack[-1]
+                elif child == '-':
+                    stack[-2] -= stack[-1]
+                elif child == '*':
+                    stack[-2] *= stack[-1]
+                else:
+                    stack[-2] /= stack[-1]
+                stack.pop()
+            elif child in ('u+', 'u-'):
+                if child == 'u-':
+                    stack[-1] *= -1
+            elif child == ':=':
+                global_vars[stack[-2]] = stack[-1]
+                stack.pop()
+                stack.pop()
+            elif child[0] == 'Id':
+                var_name = child[1]
+                if var_name in global_vars.keys():
+                    stack.append(global_vars[var_name])
+                else:
+                    stack.append(var_name)
+            else:
+                stack.append(child[1])
+        return global_vars

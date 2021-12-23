@@ -1,16 +1,13 @@
 ########################## Defines AST ##########################
+COMPOUND_NODE, REGULAR_NODE, ASSIGN_NODE, VARIABLE_NODE = 1, 2, 3, 4
 class Regular(object):
     def __init__(self, left_child, node, right_child):
         self.left_child = left_child
         self.node = node 
         self.right_child = right_child
     
-    def __repr__(self):
-        if self.left_child != None:
-            print(self.left_child)
-        if self.right_child != None:
-            print(self.right_child)
-        return ' {}'.format(self.node)
+    def type(self):
+        return REGULAR
 
     def post_order(self):
         order = []
@@ -25,6 +22,9 @@ class Compound(object):
     def __init__(self, node_list):
         self.children = node_list 
     
+    def type(self):
+        return COMPOUND
+
     def post_order(self):
         order = []
         for child in self.children:
@@ -36,6 +36,9 @@ class Assign(object):
         self.var = var 
         self.value = value 
     
+    def type(self):
+        return ASSIGN
+
     def post_order(self):
         order = []
         order += self.var.post_order()
@@ -44,13 +47,21 @@ class Assign(object):
         else:
             order.append(self.value)
         order.append(':=')
-        return order
-        
+        return order     
 
 class Variable(object):
-    def __init__(self, var_token):
-        self.type = var_token.get_type()
-        self.name = var_token.get_value()
+    def __init__(self, var_tuple):
+        self.type = var_tuple[0]
+        self.name = var_tuple[1]
     
+    def type(self):
+        return VARIABLE
+
+    def get_type(self):
+        return self.type
+    
+    def get_value(self):
+        return self.name
+
     def post_order(self):
         return [(self.type, self.name)]
