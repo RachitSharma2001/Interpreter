@@ -1,8 +1,7 @@
 from Token import Token
 from Token import INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN
 from Token import BEGIN, END, DOT, ID, ASSIGN, SEMI
-from Ast import Regular, Compound, Assign, Variable 
-from Ast import REGULAR_NODE, COMPOUND_NODE, ASSIGN_NODE, VARIABLE_NODE
+from Ast import Regular, Compound, Assign, Variable
 class Interpreter(object):
     def __init__(self, command):
         self.command = command

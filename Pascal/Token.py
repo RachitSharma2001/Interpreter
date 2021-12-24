@@ -2,9 +2,9 @@ BEGIN, END, DOT, ID, ASSIGN, SEMI = 'Begin', 'End', 'Dot', 'Id', 'Assign', 'Semi
 INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN = 'Integer', 'Plus', 'Minus', 'MUL', 'DIV', '(', ')'
 class Token(object):
     def interpret_type(self, lexeme):
-        if lexeme == 'Begin':
+        if lexeme == 'BEGIN':
             return BEGIN
-        elif lexeme == 'End':
+        elif lexeme == 'END':
             return END
         elif lexeme == '.':
             return DOT

@@ -1,5 +1,4 @@
 ########################## Defines AST ##########################
-COMPOUND_NODE, REGULAR_NODE, ASSIGN_NODE, VARIABLE_NODE = 1, 2, 3, 4
 class Regular(object):
     def __init__(self, left_child, node, right_child):
         self.left_child = left_child
