@@ -1,7 +1,7 @@
-BEGIN, END, DOT, ID, ASSIGN, SEMI = 'Begin', 'End', 'Dot', 'Id', 'Assign', 'Semi'
+BEGIN, END, DOT, ID, ASSIGN, SEMI, VAR = 'Begin', 'End', 'Dot', 'Id', 'Assign', 'Semi', 'VAR'
 PROGRAM, COMMA, COLON, REAL, INTEGER_DIV, FLOAT_DIV = 'Program', 'Comma', 'Colon', 'Real', 'IntDiv', 'FloatDiv'
 INTEGER_CONST, REAL_CONST, INTEGER, PLUS, MINUS, MUL, LPAREN, RPAREN = 'IntConst', 'RealConst', 'Integer', 'Plus', 'Minus', 'MUL', '(', ')'
-from Ast import Regular, Compound, Assign, Variable
+from Ast import Compound, Assign, Variable, Var_decl, Block, Constant, BinOp, UnOp
 
 class Token(object):
     def interpret_type(self, lexeme):
@@ -15,6 +15,8 @@ class Token(object):
             return REAL
         elif lexeme == 'INTEGER':
             return INTEGER
+        elif lexeme == 'VAR':
+            return VAR
         elif lexeme == ',':
             return COMMA
         elif lexeme == ':':
@@ -70,14 +72,14 @@ class Interpreter(object):
 
     def run(self):
         self.curr_token = self.get_next_token()
-        while self.curr_token != None:
+        '''while self.curr_token != None:
             print(self.curr_token)
-            self.curr_token = self.get_next_token()
-        '''if self.curr_token == None:
+            self.curr_token = self.get_next_token()'''
+        if self.curr_token == None:
             raise Exception("Syntax error - requirement of at least one token")
         parsed_ast = self.program()
-        print(parsed_ast.post_order())
-        return self.interpret(parsed_ast)'''
+        #print(parsed_ast.post_order())
+        return self.interpret(parsed_ast)
     
     # Functions for the lexer  
     ''' Returns the next token ''' 
@@ -124,26 +126,67 @@ class Interpreter(object):
     
     def eat(self, type):
         # If the type has a sought-after value, we would want to return it
-        if type == INTEGER or type == ID:
+        if type in (INTEGER_CONST, REAL_CONST, ID):
             if self.curr_token.is_type(type):
                 res = (self.curr_token.get_type(), self.curr_token.get_value())
                 self.curr_token = self.get_next_token()
                 return res
             raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
-        elif type in (PLUS, MINUS, MUL, DIV, LPAREN, RPAREN, DOT, ASSIGN, BEGIN, SEMI, END):
+        else:
             if self.curr_token.is_type(type):
                 self.curr_token = self.get_next_token()
                 return
             raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
-        else:
-            raise Exception('Invalid type: ', type)
 
     # Functions for the parser 
     def program(self):
-        tree = self.compound_statement()
+        self.eat(PROGRAM)
+        self.eat(ID)
+        self.eat(SEMI)
+        tree = self.block()
         self.eat(DOT)
         return tree
     
+    def block(self):
+        var_tree_list = self.declarations()
+        compound_tree = self.compound_statement()
+        return Block(var_tree_list, compound_tree)
+
+    def declarations(self):
+        self.eat(VAR)
+        var_tree_list = []
+        while True:
+            new_var_trees = self.variable_declaration()
+            self.eat(SEMI)
+            var_tree_list += new_var_trees
+            # declarations can only be followed by compound statements (starting with Begin)
+            if self.curr_token.is_type(BEGIN):
+                break 
+        return var_tree_list
+
+    def variable_declaration(self):
+        var_names = [self.eat(ID)]
+        while self.curr_token.is_type(COMMA):
+            self.eat(COMMA)
+            var_names.append(self.eat(ID))
+        self.eat(COLON)
+        var_tree_list = self.type_spec(var_names)
+        return var_tree_list
+
+    def type_spec(self, names):
+        tree_list = []
+        if self.curr_token.is_type(INTEGER):
+            var_type = INTEGER
+            self.eat(INTEGER)
+        elif self.curr_token.is_type(REAL):
+            var_type = REAL
+            self.eat(REAL)
+        else:
+            raise Exception("Syntax error: invalid token", self.curr_token)
+        for name in names:
+            tree_list.append(Var_decl(name[1], var_type))
+        return tree_list
+
     def compound_statement(self):
         self.eat(BEGIN)
         tree_list = self.statement_list()
@@ -180,11 +223,11 @@ class Interpreter(object):
             if self.curr_token.is_type(PLUS):
                 self.eat(PLUS)
                 right_child = self.term()
-                curr_tree = Regular(curr_tree, '+', right_child)
+                curr_tree = BinOp(curr_tree, '+', right_child)
             elif self.curr_token.is_type(MINUS):
                 self.eat(MINUS)
                 right_child = self.term()
-                curr_tree = Regular(curr_tree, '-', right_child)
+                curr_tree = BinOp(curr_tree, '-', right_child)
             else:
                 break
         return curr_tree 
@@ -195,11 +238,15 @@ class Interpreter(object):
             if self.curr_token.is_type(MUL):
                 self.eat(MUL)
                 right_child = self.factor()
-                curr_tree = Regular(curr_tree, '*', right_child)
-            elif self.curr_token.is_type(DIV):
-                self.eat(DIV)
+                curr_tree = BinOp(curr_tree, '*', right_child)
+            elif self.curr_token.is_type(INTEGER_DIV):
+                self.eat(INTEGER_DIV)
                 right_child = self.factor()
-                curr_tree = Regular(curr_tree, '/', right_child)
+                curr_tree = BinOp(curr_tree, 'DIV', right_child)
+            elif self.curr_token.is_type(FLOAT_DIV):
+                self.eat(FLOAT_DIV)
+                right_child = self.factor()
+                curr_tree = BinOp(curr_tree, '/', right_child)  
             else:
                 break
         return curr_tree
@@ -207,13 +254,16 @@ class Interpreter(object):
     def factor(self):
         if self.curr_token.is_type(PLUS):
             self.eat(PLUS)
-            return Regular(self.factor(), 'u+', None)
+            return UnOp(self.factor(), False)
         elif self.curr_token.is_type(MINUS):
             self.eat(MINUS)
-            return Regular(self.factor(), 'u-', None)
-        elif self.curr_token.is_type(INTEGER):     
-            res = self.eat(INTEGER)
-            return Regular(None, res, None)
+            return UnOp(self.factor(), True)
+        elif self.curr_token.is_type(INTEGER_CONST):     
+            res = self.eat(INTEGER_CONST)
+            return Constant(int(res[1]))
+        elif self.curr_token.is_type(REAL_CONST):
+            res = self.eat(REAL_CONST)
+            return Constant(float(res[1]))
         elif self.curr_token.is_type(LPAREN):
             self.eat(LPAREN)
             curr_tree = self.expr()
@@ -222,7 +272,7 @@ class Interpreter(object):
         elif self.curr_token.is_type(ID):
             return self.variable()
         else:
-            raise Exception("Syntax error - invalid operand")
+            raise Exception("Syntax error - invalid operand: ", self.curr_token)
     
     def variable(self):
         var = self.eat(ID)
@@ -230,17 +280,31 @@ class Interpreter(object):
 
     # Functions for the interpreter
     def interpret(self, ast_tree):
-        post_order_list = ast_tree.post_order()
+        global_vars = {}
+        global_vars = ast_tree.visit_post_order(global_vars)
+        return global_vars
+        '''post_order_list = ast_tree.post_order()
         global_vars = {}
         stack = []
         for child in post_order_list:
-            if child in ('+', '-', '*', '/'):
+            print('Child: ', child)
+            print(stack)
+            print(global_vars)
+            print()
+            if len(child) == 2 and len(child[0]) == 2 and child[0][0] == 'Id':
+                if child[1] == 'Integer':
+                    global_vars[child[0][1]] = 'Int_undef'
+                else:
+                    global_vars[child[0][1]] = 'Double_undef'
+            elif child in ('+', '-', '*', 'DIV', '/'):
                 if child == '+':
                     stack[-2] += stack[-1]
                 elif child == '-':
                     stack[-2] -= stack[-1]
                 elif child == '*':
                     stack[-2] *= stack[-1]
+                elif child == 'DIV':
+                    stack[-2] = int(stack[-2] / stack[-1])
                 else:
                     stack[-2] /= stack[-1]
                 stack.pop()
@@ -253,10 +317,13 @@ class Interpreter(object):
                 stack.pop()
             elif child[0] == 'Id':
                 var_name = child[1]
-                if var_name in global_vars.keys():
-                    stack.append(global_vars[var_name])
-                else:
+                if var_name not in global_vars.keys():
+                    raise Exception('Variable {} referenced but not globally declared'.format(var_name))
+                elif global_vars[var_name] in ('Int_undef', 'Double_undef'): 
+                    # IF the var name
                     stack.append(var_name)
+                else:
+                    stack.append(global_vars[var_name])
             else:
                 stack.append(child[1])
-        return global_vars
+        return global_vars'''
