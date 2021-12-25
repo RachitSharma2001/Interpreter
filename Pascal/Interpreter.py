@@ -1,8 +1,28 @@
-BEGIN, END, DOT, ID, ASSIGN, SEMI, VAR = 'Begin', 'End', 'Dot', 'Id', 'Assign', 'Semi', 'VAR'
-PROGRAM, COMMA, COLON, REAL, INTEGER_DIV, FLOAT_DIV = 'Program', 'Comma', 'Colon', 'Real', 'IntDiv', 'FloatDiv'
-INTEGER_CONST, REAL_CONST, INTEGER, PLUS, MINUS, MUL, LPAREN, RPAREN = 'IntConst', 'RealConst', 'Integer', 'Plus', 'Minus', 'MUL', '(', ')'
 from Ast import Compound, Assign, Variable, Var_decl, Block, Constant, BinOp, UnOp
 import sys
+
+BEGIN = 'Begin'
+END = 'End'
+DOT = 'Dot'
+ID = 'Id'
+ASSIGN = 'Assign'
+SEMI = 'Semi'
+VAR = 'VAR'
+PROGRAM = 'Program'
+COMMA = 'Comma'
+COLON = 'Colon'
+REAL = 'Real'
+INTEGER_DIV = 'IntDiv'
+FLOAT_DIV = 'FloatDiv'
+INTEGER_CONST = 'IntConst'
+REAL_CONST = 'RealConst'
+INTEGER = 'Integer'
+PLUS = 'Plus'
+MINUS = 'Minus'
+MUL = 'Mul'
+LPAREN = '('
+RPAREN = ')'
+
 class Token(object):
     def interpret_type(self, lexeme):
         if lexeme == 'BEGIN':
@@ -79,7 +99,6 @@ class Interpreter(object):
         if self.curr_token == None:
             raise Exception("Syntax error - requirement of at least one token")
         parsed_ast = self.program()
-        #print(parsed_ast.post_order())
         self.interpret(parsed_ast)
         return self.global_vars
 
@@ -122,6 +141,7 @@ class Interpreter(object):
         while not self.at_end() and self.command[self.pos] == ' ':
             self.pos += 1
         return
+    
     ''' Determines if at end of code '''
     def at_end(self):
         return self.pos >= len(self.command)
