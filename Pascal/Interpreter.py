@@ -85,25 +85,19 @@ class Token(object):
     def __repr__(self):
         return '({}, {})'.format(self.curr_token[0], self.curr_token[1])
 
-class Interpreter(object):
+class Lexer(object):
     def __init__(self, command):
         self.command = command
         self.pos = 0
-        self.global_vars = {}
 
-    def run(self):
-        self.curr_token = self.get_next_token()
-        '''while self.curr_token != None:
-            print(self.curr_token)
-            self.curr_token = self.get_next_token()'''
-        if self.curr_token == None:
-            raise Exception("Syntax error - requirement of at least one token")
-        parsed_ast = self.program()
-        self.interpret(parsed_ast)
-        return self.global_vars
+    def at_end(self):
+        return self.pos >= len(self.command)
+    
+    def skip_whitespace(self):
+        while not self.at_end() and self.command[self.pos] == ' ':
+            self.pos += 1
+        return
 
-    # Functions for the lexer  
-    ''' Returns the next token ''' 
     def get_next_token(self):
         self.skip_whitespace()
         if self.at_end():
@@ -135,32 +129,37 @@ class Interpreter(object):
             return Token(token)
         else:
             raise Exception('Invalid Token: ', token)
-
-    ''' Skips over white space '''
-    def skip_whitespace(self):
-        while not self.at_end() and self.command[self.pos] == ' ':
-            self.pos += 1
-        return
     
-    ''' Determines if at end of code '''
-    def at_end(self):
-        return self.pos >= len(self.command)
+    def print_tokens(self):
+        curr_token = self.get_next_token()
+        while curr_token != None:
+            print(curr_token)
+            curr_token = self.get_next_token()
+
+class Parser(object):
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.curr_token = lexer.get_next_token()
+        if self.curr_token == None:
+            return
+    
+    def generate_ast(self):
+        return self.program()
     
     def eat(self, type):
         # If the type has a sought-after value, we would want to return it
         if type in (INTEGER_CONST, REAL_CONST, ID):
             if self.curr_token.is_type(type):
                 res = (self.curr_token.get_type(), self.curr_token.get_value())
-                self.curr_token = self.get_next_token()
+                self.curr_token = self.lexer.get_next_token()
                 return res
             raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
         else:
             if self.curr_token.is_type(type):
-                self.curr_token = self.get_next_token()
+                self.curr_token = self.lexer.get_next_token()
                 return
             raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
-
-    # Functions for the parser 
+    
     def program(self):
         self.eat(PROGRAM)
         self.eat(ID)
@@ -241,7 +240,7 @@ class Interpreter(object):
     
     def expr(self):
         curr_tree = self.term()
-        while not self.at_end():
+        while not self.lexer.at_end():
             if self.curr_token.is_type(PLUS):
                 self.eat(PLUS)
                 right_child = self.term()
@@ -256,7 +255,7 @@ class Interpreter(object):
     
     def term(self):
         curr_tree = self.factor()
-        while not self.at_end():
+        while not self.lexer.at_end():
             if self.curr_token.is_type(MUL):
                 self.eat(MUL)
                 right_child = self.factor()
@@ -300,7 +299,17 @@ class Interpreter(object):
         var = self.eat(ID)
         return Variable(var)
 
-    # Functions for the interpreter
+class Interpreter(object):
+    def __init__(self, command):
+        self.lexer = Lexer(command)
+        self.global_vars = {}
+
+    def run(self):
+        parser = Parser(self.lexer)
+        ast_node = parser.generate_ast()
+        self.interpret(ast_node)
+        return self.global_vars
+
     def interpret(self, ast_node):
         self.visit_post_order(ast_node)
     
@@ -313,7 +322,6 @@ class Interpreter(object):
         raise Exception('No {} method exists'.format(type(ast_node).__name__))
 
     def visit_post_order_Constant(self, ast_node):
-        print(ast_node.get_value())
         return ast_node.get_value()
 
     def visit_post_order_UnOp(self, ast_node):
@@ -345,7 +353,10 @@ class Interpreter(object):
     
     def visit_post_order_Assign(self, ast_node):
         value = self.visit_post_order(ast_node.get_value())
-        self.global_vars[ast_node.get_variable().get_value()] = value 
+        var_name = ast_node.get_variable().get_value()
+        if not var_name in self.global_vars.keys():
+            raise Exception('Variable {} referenced but not defined'.format(var_name))
+        self.global_vars[var_name] = value 
     
     def visit_post_order_Var_decl(self, ast_node):
         self.global_vars[ast_node.get_var_name()] = -sys.maxsize
