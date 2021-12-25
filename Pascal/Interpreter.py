@@ -2,7 +2,7 @@ BEGIN, END, DOT, ID, ASSIGN, SEMI, VAR = 'Begin', 'End', 'Dot', 'Id', 'Assign', 
 PROGRAM, COMMA, COLON, REAL, INTEGER_DIV, FLOAT_DIV = 'Program', 'Comma', 'Colon', 'Real', 'IntDiv', 'FloatDiv'
 INTEGER_CONST, REAL_CONST, INTEGER, PLUS, MINUS, MUL, LPAREN, RPAREN = 'IntConst', 'RealConst', 'Integer', 'Plus', 'Minus', 'MUL', '(', ')'
 from Ast import Compound, Assign, Variable, Var_decl, Block, Constant, BinOp, UnOp
-
+import sys
 class Token(object):
     def interpret_type(self, lexeme):
         if lexeme == 'BEGIN':
@@ -69,6 +69,7 @@ class Interpreter(object):
     def __init__(self, command):
         self.command = command
         self.pos = 0
+        self.global_vars = {}
 
     def run(self):
         self.curr_token = self.get_next_token()
@@ -79,8 +80,9 @@ class Interpreter(object):
             raise Exception("Syntax error - requirement of at least one token")
         parsed_ast = self.program()
         #print(parsed_ast.post_order())
-        return self.interpret(parsed_ast)
-    
+        self.interpret(parsed_ast)
+        return self.global_vars
+
     # Functions for the lexer  
     ''' Returns the next token ''' 
     def get_next_token(self):
@@ -279,51 +281,59 @@ class Interpreter(object):
         return Variable(var)
 
     # Functions for the interpreter
-    def interpret(self, ast_tree):
-        global_vars = {}
-        global_vars = ast_tree.visit_post_order(global_vars)
-        return global_vars
-        '''post_order_list = ast_tree.post_order()
-        global_vars = {}
-        stack = []
-        for child in post_order_list:
-            print('Child: ', child)
-            print(stack)
-            print(global_vars)
-            print()
-            if len(child) == 2 and len(child[0]) == 2 and child[0][0] == 'Id':
-                if child[1] == 'Integer':
-                    global_vars[child[0][1]] = 'Int_undef'
-                else:
-                    global_vars[child[0][1]] = 'Double_undef'
-            elif child in ('+', '-', '*', 'DIV', '/'):
-                if child == '+':
-                    stack[-2] += stack[-1]
-                elif child == '-':
-                    stack[-2] -= stack[-1]
-                elif child == '*':
-                    stack[-2] *= stack[-1]
-                elif child == 'DIV':
-                    stack[-2] = int(stack[-2] / stack[-1])
-                else:
-                    stack[-2] /= stack[-1]
-                stack.pop()
-            elif child in ('u+', 'u-'):
-                if child == 'u-':
-                    stack[-1] *= -1
-            elif child == ':=':
-                global_vars[stack[-2]] = stack[-1]
-                stack.pop()
-                stack.pop()
-            elif child[0] == 'Id':
-                var_name = child[1]
-                if var_name not in global_vars.keys():
-                    raise Exception('Variable {} referenced but not globally declared'.format(var_name))
-                elif global_vars[var_name] in ('Int_undef', 'Double_undef'): 
-                    # IF the var name
-                    stack.append(var_name)
-                else:
-                    stack.append(global_vars[var_name])
-            else:
-                stack.append(child[1])
-        return global_vars'''
+    def interpret(self, ast_node):
+        self.visit_post_order(ast_node)
+    
+    def visit_post_order(self, ast_node):
+        name_of_method = 'visit_post_order_' + type(ast_node).__name__
+        visitor = getattr(self, name_of_method, self.error_visit)
+        return visitor(ast_node)
+    
+    def error_visit(self, ast_node):
+        raise Exception('No {} method exists'.format(type(ast_node).__name__))
+
+    def visit_post_order_Constant(self, ast_node):
+        print(ast_node.get_value())
+        return ast_node.get_value()
+
+    def visit_post_order_UnOp(self, ast_node):
+        value = self.visit_post_order(ast_node.get_child())
+        return (-1 if ast_node.is_negative() else 1) * value
+    
+    def visit_post_order_BinOp(self, ast_node):
+        left_side = self.visit_post_order(ast_node.get_left_child())
+        right_side = self.visit_post_order(ast_node.get_right_child())
+        op = ast_node.get_operand()
+        if op == '+':
+            return left_side + right_side 
+        elif op == '-':
+            return left_side - right_side
+        elif op == '*':
+            return left_side * right_side 
+        elif op == '/':
+            return left_side / right_side
+        elif op == 'DIV':
+            return int(left_side / right_side)
+    
+    def visit_post_order_Variable(self, ast_node, get_value=True):
+        name = ast_node.get_value()
+        if get_value:
+            if name not in self.global_vars.keys():
+                raise Exception('Variable {} referenced but not defined'.format(name))
+            return self.global_vars[name]
+        return name
+    
+    def visit_post_order_Assign(self, ast_node):
+        value = self.visit_post_order(ast_node.get_value())
+        self.global_vars[ast_node.get_variable().get_value()] = value 
+    
+    def visit_post_order_Var_decl(self, ast_node):
+        self.global_vars[ast_node.get_var_name()] = -sys.maxsize
+    
+    def visit_post_order_Compound(self, ast_node):
+        for child in ast_node.get_children():
+            self.visit_post_order(child)
+    
+    def visit_post_order_Block(self, ast_node):
+        for child in ast_node.get_children():
+            self.visit_post_order(child)
