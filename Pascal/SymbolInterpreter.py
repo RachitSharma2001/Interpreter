@@ -1,6 +1,49 @@
-from Symbol import BuiltInSymbol, VarSymbol
 from Token import INTEGER, REAL
-from SymbolTable import SymbolTable
+
+class Symbol(object):
+    def __init__(self, name, type = None):
+        self.name = name 
+        self.type = type
+
+    def get_name(self):
+        return name
+
+    def get_type(self):
+        return type 
+    
+class BuiltInSymbol(Symbol):
+    def __init__(self, name):
+        super().__init__(name)
+
+    def __repr__(self):
+        return "<{}:BuiltInSymbol>".format(self.name)
+
+class VarSymbol(Symbol):
+    def __init__(self, name, type):
+        super().__init__(name, type=type)
+    
+    def __repr__(self):
+        return "<{}:{}>".format(self.name, self.type)
+
+class SymbolTable(object):
+    def __init__(self):
+        self.table = {}
+    
+    def define(self, symbol_name, symbol):
+        self.table[symbol_name] = symbol 
+    
+    def lookup(self, symbol_name):
+        if symbol_name in self.table.keys():
+            return self.table[symbol_name]
+        return None
+    
+    def __repr__(self):
+        str = "-----------------"
+        for key in self.table.keys():
+            str += "{} : {}".format(key, self.table[key])
+        str += "-----------------"
+        return str
+
 class SymbolInterpreter():
     def __init__(self):
         self.symbol_table = SymbolTable()
