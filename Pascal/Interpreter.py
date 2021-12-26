@@ -90,14 +90,6 @@ class Lexer(object):
         self.command = command
         self.pos = 0
 
-    def at_end(self):
-        return self.pos >= len(self.command)
-    
-    def skip_whitespace(self):
-        while not self.at_end() and self.command[self.pos] == ' ':
-            self.pos += 1
-        return
-
     def get_next_token(self):
         self.skip_whitespace()
         if self.at_end():
@@ -130,6 +122,14 @@ class Lexer(object):
         else:
             raise Exception('Invalid Token: ', token)
     
+    def skip_whitespace(self):
+        while not self.at_end() and self.command[self.pos] == ' ':
+            self.pos += 1
+        return
+
+    def at_end(self):
+        return self.pos >= len(self.command)
+
     def print_tokens(self):
         curr_token = self.get_next_token()
         while curr_token != None:
@@ -145,21 +145,7 @@ class Parser(object):
     
     def generate_ast(self):
         return self.program()
-    
-    def eat(self, type):
-        # If the type has a sought-after value, we would want to return it
-        if type in (INTEGER_CONST, REAL_CONST, ID):
-            if self.curr_token.is_type(type):
-                res = (self.curr_token.get_type(), self.curr_token.get_value())
-                self.curr_token = self.lexer.get_next_token()
-                return res
-            raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
-        else:
-            if self.curr_token.is_type(type):
-                self.curr_token = self.lexer.get_next_token()
-                return
-            raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
-    
+
     def program(self):
         self.eat(PROGRAM)
         self.eat(ID)
@@ -167,7 +153,7 @@ class Parser(object):
         tree = self.block()
         self.eat(DOT)
         return tree
-    
+   
     def block(self):
         var_tree_list = self.declarations()
         compound_tree = self.compound_statement()
@@ -294,16 +280,31 @@ class Parser(object):
             return self.variable()
         else:
             raise Exception("Syntax error - invalid operand: ", self.curr_token)
-    
+
     def variable(self):
         var = self.eat(ID)
         return Variable(var)
+       
+    def eat(self, type):
+        # If the type has a sought-after value, we would want to return it
+        if type in (INTEGER_CONST, REAL_CONST, ID):
+            if self.curr_token.is_type(type):
+                res = (self.curr_token.get_type(), self.curr_token.get_value())
+                self.curr_token = self.lexer.get_next_token()
+                return res
+            raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
+        else:
+            if self.curr_token.is_type(type):
+                self.curr_token = self.lexer.get_next_token()
+                return
+            raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
+
 
 class Interpreter(object):
     def __init__(self, command):
         self.lexer = Lexer(command)
         self.global_vars = {}
-
+    
     def run(self):
         parser = Parser(self.lexer)
         ast_node = parser.generate_ast()
@@ -317,7 +318,7 @@ class Interpreter(object):
         name_of_method = 'visit_post_order_' + type(ast_node).__name__
         visitor = getattr(self, name_of_method, self.error_visit)
         return visitor(ast_node)
-    
+
     def error_visit(self, ast_node):
         raise Exception('No {} method exists'.format(type(ast_node).__name__))
 
