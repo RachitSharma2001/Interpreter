@@ -1,6 +1,7 @@
 from Token import *
-from Parser import Parser
 from Lexer import Lexer
+from Parser import Parser
+from SymbolInterpreter import SymbolInterpreter
 import sys
 
 class Interpreter(object):
@@ -11,6 +12,9 @@ class Interpreter(object):
     def run(self):
         parser = Parser(self.lexer)
         ast_node = parser.generate_ast()
+        # Checks if any errors with symbols
+        sym_int = SymbolInterpreter()
+        sym_int.interpret(ast_node)
         self.interpret(ast_node)
         return self.global_vars
 
@@ -50,20 +54,16 @@ class Interpreter(object):
     def visit_post_order_Variable(self, ast_node, get_value=True):
         name = ast_node.get_value()
         if get_value:
-            if name not in self.global_vars.keys():
-                raise Exception('Variable {} referenced but not defined'.format(name))
             return self.global_vars[name]
         return name
     
     def visit_post_order_Assign(self, ast_node):
         value = self.visit_post_order(ast_node.get_value())
         var_name = ast_node.get_variable().get_value()
-        if not var_name in self.global_vars.keys():
-            raise Exception('Variable {} referenced but not defined'.format(var_name))
         self.global_vars[var_name] = value 
     
     def visit_post_order_Var_decl(self, ast_node):
-        self.global_vars[ast_node.get_var_name()] = -sys.maxsize
+        self.global_vars[ast_node.get_name()] = -sys.maxsize
     
     def visit_post_order_Compound(self, ast_node):
         for child in ast_node.get_children():

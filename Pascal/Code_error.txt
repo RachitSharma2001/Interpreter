@@ -1,0 +1,10 @@
+PROGRAM Part10;
+VAR
+    a: INTEGER;
+
+BEGIN
+    BEGIN
+        a:=10 + 2*5;
+        d := a;
+    END;
+END.

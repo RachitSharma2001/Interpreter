@@ -1,9 +1,13 @@
 ########################## Defines AST ##########################
 import sys
 class Constant(object):
-    def __init__(self, value):
+    def __init__(self, value, type):
         self.value = value 
-    
+        self.type = type
+
+    def get_type(self):
+        return self.type
+        
     def get_value(self):
         return self.value
 
@@ -60,8 +64,11 @@ class Var_decl(object):
         self.var_name = var_name 
         self.var_type = var_type
 
-    def get_var_name(self):
+    def get_name(self):
         return self.var_name
+    
+    def get_type(self):
+        return self.var_type
 
 class Compound(object):
     def __init__(self, node_list):

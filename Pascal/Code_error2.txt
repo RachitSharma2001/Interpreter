@@ -1,0 +1,11 @@
+PROGRAM Part10;
+VAR
+    a: REAL;
+    b: INTEGER;
+
+BEGIN
+    BEGIN
+        a:=10;
+        b:=d+a;
+    END;
+END.

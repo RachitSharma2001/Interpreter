@@ -132,10 +132,10 @@ class Parser(object):
             return UnOp(self.factor(), True)
         elif self.curr_token.is_type(INTEGER_CONST):     
             res = self.eat(INTEGER_CONST)
-            return Constant(int(res[1]))
+            return Constant(int(res[1]), INTEGER)
         elif self.curr_token.is_type(REAL_CONST):
             res = self.eat(REAL_CONST)
-            return Constant(float(res[1]))
+            return Constant(float(res[1]), REAL)
         elif self.curr_token.is_type(LPAREN):
             self.eat(LPAREN)
             curr_tree = self.expr()
