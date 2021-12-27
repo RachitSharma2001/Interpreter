@@ -1,0 +1,18 @@
+PROGRAM Part10;
+VAR
+    a, b, c, d : INTEGER;
+    number, newNumber : REAL;
+
+BEGIN
+    BEGIN
+        a:=10 + 2*5;
+        d := 9 + 5;
+        number := a / d;
+        BEGIN
+            newNumber := number * 9.4
+        END;
+        b := 10;
+        c := 5;
+    END;
+c := c * b;
+END.

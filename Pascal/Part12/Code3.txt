@@ -1,0 +1,9 @@
+PROGRAM Part10;
+VAR
+    a : REAL;
+    number : REAL;
+
+BEGIN
+    a := 0.52;
+    number := a*a + (a*9/4 + 7*a+(a+a+a)) / a;
+END.

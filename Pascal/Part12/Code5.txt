@@ -1,0 +1,32 @@
+PROGRAM part12;
+PROCEDURE P1;
+VAR
+    a : INTEGER;
+    b : INTEGER;
+    c, z : REAL;
+BEGIN 
+    a := 4;
+    b := a*a*a + (8*3 - a);
+    c := a*a / b + 8;
+    z := c*a
+END;
+
+PROCEDURE P2;
+BEGIN
+END;
+
+PROCEDURE P3;
+VAR
+    a:INTEGER;
+    PROCEDURE P4;
+    VAR
+        a : REAL;
+    BEGIN
+        a:=4.4;
+    END;
+BEGIN
+    a:=2
+END;
+
+BEGIN
+END.
