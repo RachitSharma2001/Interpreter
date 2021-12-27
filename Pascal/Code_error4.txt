@@ -1,0 +1,24 @@
+PROGRAM Part12;
+VAR
+   a : INTEGER;
+
+PROCEDURE P1;
+VAR
+   a : REAL;
+   k : INTEGER;
+
+   PROCEDURE P2;
+   VAR
+      b, z : INTEGER;
+   BEGIN 
+      z := 777;
+      b := 12;
+   END;  
+
+BEGIN 
+    error := 5;
+END;  
+
+BEGIN
+   a := 10;
+END.  

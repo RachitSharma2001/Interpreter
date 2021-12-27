@@ -36,7 +36,7 @@ class SymbolTable(object):
         if symbol_name in self.table.keys():
             return self.table[symbol_name]
         return None
-    
+
     def __repr__(self):
         str = "-----------------"
         for key in self.table.keys():
@@ -52,7 +52,7 @@ class SymbolInterpreter():
     def define_builtin_types(self):
         self.symbol_table.define(INTEGER, BuiltInSymbol(INTEGER))
         self.symbol_table.define(REAL, BuiltInSymbol(REAL))
-
+    
     def interpret(self, ast_node):
         self.visit_post_order(ast_node)
     
@@ -100,6 +100,9 @@ class SymbolInterpreter():
         for child in ast_node.get_children():
             self.visit_post_order(child)
     
+    def visit_post_order_Procedure(self, ast_node):
+        self.visit_post_order(ast_node.get_child())
+
     def visit_post_order_Block(self, ast_node):
         for child in ast_node.get_children():
             self.visit_post_order(child)

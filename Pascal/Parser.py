@@ -1,5 +1,5 @@
 from Token import *
-from Ast import Compound, Assign, Variable, Var_decl, Block, Constant, BinOp, UnOp
+from Ast import Block, Procedure, Compound, Var_decl, Assign, Variable, Constant, BinOp, UnOp
 
 class Parser(object):
     def __init__(self, lexer):
@@ -20,21 +20,35 @@ class Parser(object):
         return tree
    
     def block(self):
-        var_tree_list = self.declarations()
+        dec_tree_list = []
+        while True:
+            sub_list = self.declarations()
+            if sub_list == None:
+                break 
+            dec_tree_list += sub_list
         compound_tree = self.compound_statement()
-        return Block(var_tree_list, compound_tree)
+        return Block(dec_tree_list, compound_tree)
 
     def declarations(self):
-        self.eat(VAR)
-        var_tree_list = []
-        while True:
-            new_var_trees = self.variable_declaration()
-            self.eat(SEMI)
-            var_tree_list += new_var_trees
-            # declarations can only be followed by compound statements (starting with Begin)
-            if self.curr_token.is_type(BEGIN):
-                break 
-        return var_tree_list
+        if self.curr_token.is_type(VAR):
+            self.eat(VAR)
+            var_tree_list = []
+            while self.curr_token.is_type(ID):
+                new_var_trees = self.variable_declaration()
+                self.eat(SEMI)
+                var_tree_list += new_var_trees
+            return var_tree_list
+        elif self.curr_token.is_type(PROCEDURE):
+            procedure_list = []
+            while self.curr_token.is_type(PROCEDURE):
+                self.eat(PROCEDURE)
+                self.eat(ID)
+                self.eat(SEMI)
+                procedure_list += [Procedure(self.block())]
+                self.eat(SEMI)
+            return procedure_list
+        else:
+            None
 
     def variable_declaration(self):
         var_names = [self.eat(ID)]
@@ -66,7 +80,10 @@ class Parser(object):
         return Compound(tree_list)
     
     def statement_list(self):
-        list_nodes = [self.statement()]
+        returned_node = self.statement()
+        if returned_node == None:
+            return []
+        list_nodes = [returned_node]
         while self.curr_token.is_type(SEMI):
             self.eat(SEMI)
             returned_node = self.statement()
@@ -163,4 +180,3 @@ class Parser(object):
                 self.curr_token = self.lexer.get_next_token()
                 return
             raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
-

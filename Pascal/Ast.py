@@ -7,7 +7,7 @@ class Constant(object):
 
     def get_type(self):
         return self.type
-        
+
     def get_value(self):
         return self.value
 
@@ -77,9 +77,16 @@ class Compound(object):
     def get_children(self):
         return self.children
 
+class Procedure(object):
+    def __init__(self, child):
+        self.child = child 
+    
+    def get_child(self):
+        return self.child
+
 class Block(object):
-    def __init__(self, var_tree_list, compound_tree):
-        self.children = var_tree_list + [compound_tree]
+    def __init__(self, dec_tree_list, compound_tree):
+        self.children = dec_tree_list + [compound_tree]
     
     def get_children(self):
         return self.children

@@ -1,4 +1,4 @@
-
+PROCEDURE = 'PROCEDURE'
 BEGIN = 'Begin'
 END = 'End'
 DOT = 'Dot'
@@ -24,6 +24,8 @@ RPAREN = ')'
 
 class Token(object):
     def interpret_type(self, lexeme):
+        if lexeme == 'PROCEDURE':
+            return PROCEDURE
         if lexeme == 'BEGIN':
             return BEGIN
         elif lexeme == 'END':

@@ -69,6 +69,10 @@ class Interpreter(object):
         for child in ast_node.get_children():
             self.visit_post_order(child)
     
+    # For now, we are not executing the procedure 
+    def visit_post_order_Procedure(self, ast_node):
+        return
+
     def visit_post_order_Block(self, ast_node):
         for child in ast_node.get_children():
             self.visit_post_order(child)
