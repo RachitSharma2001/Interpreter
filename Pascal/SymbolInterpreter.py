@@ -93,6 +93,8 @@ class SymbolInterpreter():
         type = ast_node.get_type()
         if self.symbol_table.lookup(type) == None:
             raise Exception('{} is not a valid type'.format(type))
+        if self.symbol_table.lookup(name) != None:
+            raise Exception('{} already defined'.format(name))
         self.symbol_table.define(name, VarSymbol(name, type))
         return
     
@@ -101,7 +103,8 @@ class SymbolInterpreter():
             self.visit_post_order(child)
     
     def visit_post_order_Procedure(self, ast_node):
-        self.visit_post_order(ast_node.get_child())
+        return
+        #self.visit_post_order(ast_node.get_child())
 
     def visit_post_order_Block(self, ast_node):
         for child in ast_node.get_children():

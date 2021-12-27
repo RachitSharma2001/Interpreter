@@ -78,9 +78,13 @@ class Compound(object):
         return self.children
 
 class Procedure(object):
-    def __init__(self, child):
+    def __init__(self, proc_name, child):
+        self.proc_name = proc_name
         self.child = child 
     
+    def get_proc_name(self):
+        return self.proc_name
+
     def get_child(self):
         return self.child
 

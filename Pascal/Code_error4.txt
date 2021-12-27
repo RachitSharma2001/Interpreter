@@ -1,6 +1,8 @@
 PROGRAM Part12;
 VAR
-   a : INTEGER;
+   redefinedVar : INTEGER;
+   b: REAL;
+   redefinedVar : REAL;
 
 PROCEDURE P1;
 VAR
@@ -15,8 +17,7 @@ VAR
       b := 12;
    END;  
 
-BEGIN 
-    error := 5;
+BEGIN
 END;  
 
 BEGIN

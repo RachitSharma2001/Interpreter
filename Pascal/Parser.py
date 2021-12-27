@@ -20,16 +20,12 @@ class Parser(object):
         return tree
    
     def block(self):
-        dec_tree_list = []
-        while True:
-            sub_list = self.declarations()
-            if sub_list == None:
-                break 
-            dec_tree_list += sub_list
+        dec_tree_list = self.declarations()
         compound_tree = self.compound_statement()
         return Block(dec_tree_list, compound_tree)
 
     def declarations(self):
+        total_list = []
         if self.curr_token.is_type(VAR):
             self.eat(VAR)
             var_tree_list = []
@@ -37,18 +33,14 @@ class Parser(object):
                 new_var_trees = self.variable_declaration()
                 self.eat(SEMI)
                 var_tree_list += new_var_trees
-            return var_tree_list
-        elif self.curr_token.is_type(PROCEDURE):
-            procedure_list = []
-            while self.curr_token.is_type(PROCEDURE):
-                self.eat(PROCEDURE)
-                self.eat(ID)
-                self.eat(SEMI)
-                procedure_list += [Procedure(self.block())]
-                self.eat(SEMI)
-            return procedure_list
-        else:
-            None
+            total_list += var_tree_list
+        while self.curr_token.is_type(PROCEDURE):
+            self.eat(PROCEDURE)
+            proc_name = self.eat(ID)[1]
+            self.eat(SEMI)
+            total_list += [Procedure(proc_name, self.block())]
+            self.eat(SEMI)
+        return total_list
 
     def variable_declaration(self):
         var_names = [self.eat(ID)]
