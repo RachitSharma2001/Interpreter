@@ -126,12 +126,11 @@ class SemanticAnalyzer():
     
     def visit_post_order_Proc_decl(self, ast_node):
         proc_name = ast_node.get_proc_name()
+        if self.curr_scope.lookup(proc_name):
+            raise Exception('{} already defined'.format(proc_name))
         self.curr_scope.define(proc_name, ProcSymbol(proc_name))
-        # Save current scoped symbol table
         saved_sym_table = self.curr_scope
-        # Reinitialize scoped symbol table
         self.init_sym_table(self.curr_scope)
-        # Add parameters to current scoped symbol table
         params = ast_node.get_params()
         for param in params:
             param_name = param.get_name()
