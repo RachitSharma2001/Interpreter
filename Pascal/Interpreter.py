@@ -1,7 +1,7 @@
 from Token import *
 from Lexer import Lexer
 from Parser import Parser
-from SymbolInterpreter import SymbolInterpreter
+from SemanticAnalyzer import SemanticAnalyzer
 import sys
 
 class Interpreter(object):
@@ -13,7 +13,7 @@ class Interpreter(object):
         parser = Parser(self.lexer)
         ast_node = parser.generate_ast()
         # Checks if any errors with symbols
-        sym_int = SymbolInterpreter()
+        sym_int = SemanticAnalyzer()
         sym_int.interpret(ast_node)
         self.interpret(ast_node)
         return self.global_vars
@@ -70,7 +70,7 @@ class Interpreter(object):
             self.visit_post_order(child)
     
     # For now, we are not executing the procedure 
-    def visit_post_order_Procedure(self, ast_node):
+    def visit_post_order_Proc_decl(self, ast_node):
         return
 
     def visit_post_order_Block(self, ast_node):

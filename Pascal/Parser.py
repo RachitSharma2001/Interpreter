@@ -1,5 +1,5 @@
 from Token import *
-from Ast import Block, Procedure, Compound, Var_decl, Assign, Variable, Constant, BinOp, UnOp
+from Ast import Block, Proc_decl, Compound, Var_decl, Assign, Variable, Param, Constant, BinOp, UnOp
 
 class Parser(object):
     def __init__(self, lexer):
@@ -37,21 +37,48 @@ class Parser(object):
         while self.curr_token.is_type(PROCEDURE):
             self.eat(PROCEDURE)
             proc_name = self.eat(ID)[1]
+            param_list = []
+            if self.curr_token.is_type(LPAREN):
+                self.eat(LPAREN)
+                param_list += self.formal_param_list()
+                self.eat(RPAREN)
             self.eat(SEMI)
-            total_list += [Procedure(proc_name, self.block())]
+            total_list += [Proc_decl(proc_name, param_list, self.block())]
             self.eat(SEMI)
         return total_list
 
-    def variable_declaration(self):
-        var_names = [self.eat(ID)]
+    def formal_param_list(self):
+        param_list = self.params()
+        if self.curr_token.is_type(SEMI):
+            self.eat(SEMI)
+            param_list += self.formal_param_list()
+        return param_list
+    
+    def params(self):
+        var_names = [self.eat(ID)[1]]
         while self.curr_token.is_type(COMMA):
             self.eat(COMMA)
-            var_names.append(self.eat(ID))
+            var_names.append(self.eat(ID)[1])
         self.eat(COLON)
-        var_tree_list = self.type_spec(var_names)
+        var_type = self.type_spec()
+        param_tree_list = []
+        for name in var_names:
+            param_tree_list.append(Param(name, var_type))
+        return param_tree_list
+
+    def variable_declaration(self):
+        var_names = [self.eat(ID)[1]]
+        while self.curr_token.is_type(COMMA):
+            self.eat(COMMA)
+            var_names.append(self.eat(ID)[1])
+        self.eat(COLON)
+        var_type = self.type_spec()
+        var_tree_list = []
+        for name in var_names:
+            var_tree_list.append(Var_decl(name, var_type))
         return var_tree_list
 
-    def type_spec(self, names):
+    def type_spec(self):
         tree_list = []
         if self.curr_token.is_type(INTEGER):
             var_type = INTEGER
@@ -61,9 +88,9 @@ class Parser(object):
             self.eat(REAL)
         else:
             raise Exception("Syntax error: invalid token", self.curr_token)
-        for name in names:
-            tree_list.append(Var_decl(name[1], var_type))
-        return tree_list
+        '''for name in names:
+            tree_list.append(Var_decl(name[1], var_type))'''
+        return var_type
 
     def compound_statement(self):
         self.eat(BEGIN)

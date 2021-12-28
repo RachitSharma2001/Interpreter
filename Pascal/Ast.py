@@ -77,16 +77,25 @@ class Compound(object):
     def get_children(self):
         return self.children
 
-class Procedure(object):
-    def __init__(self, proc_name, child):
+class Param(object):
+    def __init__(self, param_name, param_type):
+        self.param_name = param_name
+        self.param_type = param_type
+
+class Proc_decl(object):
+    def __init__(self, proc_name, param_children, body):
         self.proc_name = proc_name
-        self.child = child 
+        self.param_children = param_children
+        self.body = body
     
     def get_proc_name(self):
         return self.proc_name
 
-    def get_child(self):
-        return self.child
+    def get_param_children(self):
+        return self.param_children
+
+    def get_body(self):
+        return self.body
 
 class Block(object):
     def __init__(self, dec_tree_list, compound_tree):

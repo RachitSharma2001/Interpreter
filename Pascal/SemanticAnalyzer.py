@@ -44,7 +44,7 @@ class SymbolTable(object):
         str += "-----------------"
         return str
 
-class SymbolInterpreter():
+class SemanticAnalyzer():
     def __init__(self):
         self.symbol_table = SymbolTable()
         self.define_builtin_types()
@@ -102,7 +102,7 @@ class SymbolInterpreter():
         for child in ast_node.get_children():
             self.visit_post_order(child)
     
-    def visit_post_order_Procedure(self, ast_node):
+    def visit_post_order_Proc_decl(self, ast_node):
         return
         #self.visit_post_order(ast_node.get_child())
 
