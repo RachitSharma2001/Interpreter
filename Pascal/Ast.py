@@ -81,6 +81,12 @@ class Param(object):
     def __init__(self, param_name, param_type):
         self.param_name = param_name
         self.param_type = param_type
+    
+    def get_name(self):
+        return self.param_name 
+    
+    def get_type(self):
+        return self.param_type
 
 class Proc_decl(object):
     def __init__(self, proc_name, param_children, body):
@@ -91,7 +97,7 @@ class Proc_decl(object):
     def get_proc_name(self):
         return self.proc_name
 
-    def get_param_children(self):
+    def get_params(self):
         return self.param_children
 
     def get_body(self):

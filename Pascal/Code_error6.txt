@@ -4,9 +4,9 @@ PROGRAM Main;
    PROCEDURE AlphaB(a, b : INTEGER);
       VAR y : INTEGER;
       PROCEDURE AlphaC(a : INTEGER; c, z : REAL; d : REAL);
-        VAR y : REAL;
+        VAR d : REAL;
       BEGIN
-        y := 5;
+        d := 5;
       END;
    BEGIN
       x := y;

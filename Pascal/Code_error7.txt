@@ -3,7 +3,7 @@ PROGRAM Main;
 
    PROCEDURE AlphaB(a, b : INTEGER);
       VAR y : INTEGER;
-      PROCEDURE AlphaC(a : INTEGER; c, z : REAL; d : REAL);
+      PROCEDURE AlphaC(a : INTEGER; c, z : REAL; a : REAL);
         VAR y : REAL;
       BEGIN
         y := 5;
