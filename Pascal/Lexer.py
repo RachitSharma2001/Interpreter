@@ -8,37 +8,56 @@ class Lexer(object):
         self.line_num = 1
         self.col_num = 1
 
+    def peek(self):
+        if self.pos + 1 >= len(self.command):
+            return None 
+        return self.command[self.pos + 1]
+    
+    def advance(self, advance_amount):
+        self.pos += advance_amount
+
+    def get_from_dict(self, curr_char):
+        next_char = self.peek()
+        if next_char != None and (curr_char + next_char) in token_dict.keys():
+            self.advance(2)
+            return (curr_char+next_char)
+        elif curr_char in token_dict.keys():
+            self.advance(1)
+            return curr_char
+        return None
+
+    def get_number(self, first_char):
+        curr_char = first_char
+        full_number = ""
+        while not self.at_end() and (curr_char.isdigit() or curr_char == '.'):
+            full_number += curr_char
+            curr_char = self.peek()
+            self.advance(1)
+        return full_number
+    
+    def get_string(self, first_char):
+        curr_char = first_char 
+        full_string = ""
+        while not self.at_end() and curr_char.isalnum():
+            full_string += curr_char
+            curr_char = self.peek()
+            self.advance(1)
+        return full_string
+
     def get_next_token(self):
         self.skip_whitespace()
         if self.at_end():
             return None 
-        token = self.command[self.pos]
-        if self.pos < len(self.command) - 1 and self.command[self.pos:self.pos+2] == ':=':
-            self.pos += 2
-            return Token(':=', self.line_num, self.col_num)
-        elif token in ('+', '-', '*', '/', '(', ')', ';', '.', ':', ','):
-            self.pos += 1
-            return Token(token, self.line_num, self.col_num)
-        elif token.isdigit():
-            self.pos += 1
-            while not self.at_end():
-                next_token = self.command[self.pos]
-                if not next_token.isdigit() and next_token != '.':
-                    break
-                token += next_token
-                self.pos += 1
-            return Token(token, self.line_num, self.col_num)
-        elif token.isalnum():
-            self.pos += 1
-            while not self.at_end():
-                curr_char = self.command[self.pos]
-                if not curr_char.isalnum():
-                    break
-                token += curr_char
-                self.pos += 1
-            return Token(token, self.line_num, self.col_num)
+        curr_char = self.command[self.pos]
+        dict_token = self.get_from_dict(curr_char)
+        if dict_token != None:
+            return Token(dict_token, self.line_num, self.col_num)
+        elif curr_char.isdigit():
+            return Token(self.get_number(curr_char), self.line_num, self.col_num)
+        elif curr_char.isalnum():
+            return Token(self.get_string(curr_char), self.line_num, self.col_num)
         else:
-            raise LexerError(token)
+            raise LexerError(curr_char)
     
     def skip_whitespace(self):
         while not self.at_end():
@@ -49,7 +68,7 @@ class Lexer(object):
                 self.col_num += 1
             else:
                 break
-            self.pos += 1
+            self.advance(1)
         return
 
     def at_end(self):

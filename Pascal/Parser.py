@@ -170,8 +170,6 @@ class Parser(object):
             return Constant(res, INTEGER)
         elif self.curr_token.is_type(REAL_CONST):
             res = self.eat(REAL_CONST)
-            if res == '3.14':
-                print("HEre -> ", res)
             return Constant(res, REAL)
         elif self.curr_token.is_type(LPAREN):
             self.eat(LPAREN)

@@ -21,6 +21,27 @@ MUL = '*'
 LPAREN = '('
 RPAREN = ')'
 
+token_dict = {
+    'PROGRAM' : PROGRAM,
+    'PROCEDURE' : PROCEDURE,
+    'BEGIN' : BEGIN,
+    'VAR' : VAR,
+    'END' : END,
+    'INTEGER' : INTEGER,
+    'REAL' : REAL,
+    ':=' : ASSIGN,
+    '.' : DOT,
+    ',' : COMMA,
+    ':' : COLON,
+    ';' : SEMI,
+    '+' : PLUS,
+    '-' : MINUS,
+    '*' : MUL,
+    'DIV' : INTEGER_DIV,
+    '/' : FLOAT_DIV,
+    '(' : LPAREN,
+    ')' : RPAREN
+}
 
 class Token(object):
     def __init__(self, lexeme, line_num, col_num):
@@ -29,63 +50,26 @@ class Token(object):
         self.col_num = col_num 
     
     def interpret_type(self, lexeme):
-        if lexeme == 'PROCEDURE':
-            return PROCEDURE
-        if lexeme == 'BEGIN':
-            return BEGIN
-        elif lexeme == 'END':
-            return END
-        elif lexeme == 'PROGRAM':
-            return PROGRAM 
-        elif lexeme == 'REAL':
-            return REAL
-        elif lexeme == 'INTEGER':
-            return INTEGER
-        elif lexeme == 'VAR':
-            return VAR
-        elif lexeme == ',':
-            return COMMA
-        elif lexeme == ':':
-            return COLON 
-        elif lexeme == 'DIV':
-            return INTEGER_DIV
-        elif lexeme == '.':
-            return DOT
-        elif lexeme == ':=':
-            return ASSIGN 
-        elif lexeme == ';':
-            return SEMI
+        if lexeme in token_dict.keys():
+            return token_dict[lexeme]
         elif lexeme[0].isdigit() and '.' in lexeme:
             return REAL_CONST
         elif lexeme.isdigit():
             return INTEGER_CONST
-        elif lexeme == '+':
-            return PLUS
-        elif lexeme == '-':
-            return MINUS
-        elif lexeme == '*':
-            return MUL
-        elif lexeme == '/':
-            return FLOAT_DIV
-        elif lexeme == '(':
-            return LPAREN
-        elif lexeme == ')':
-            return RPAREN
-        # if its none of the above, then likely a variable
-        return ID 
+        return ID
 
     def is_type(self, given_type):
         return self.curr_token[0] == given_type
 
-    def get_value(self):
-        if self.curr_token[0] == INTEGER_CONST:
-            return int(self.curr_token[1])
-        elif self.curr_token[0] == REAL_CONST:
-            return float(self.curr_token[1])
-        return self.curr_token[1]
-    
     def get_type(self):
         return self.curr_token[0]
+
+    def get_value(self):
+        if self.is_type(INTEGER_CONST):
+            return int(self.curr_token[1])
+        elif self.is_type(REAL_CONST):
+            return float(self.curr_token[1])
+        return self.curr_token[1]
 
     def get_line_num(self):
         return self.line_num
