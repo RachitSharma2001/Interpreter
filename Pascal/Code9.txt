@@ -1,0 +1,24 @@
+PROGRAM Main;
+   VAR 
+    x, y: REAL;
+    newInt : INTEGER;
+
+   PROCEDURE AlphaB(a, b : INTEGER);
+      VAR y : INTEGER;
+      PROCEDURE AlphaC(h : INTEGER; j, z : REAL; d : REAL);
+        VAR e : REAL;
+        PROCEDURE AlphaD;
+        VAR smallVar : REAL;
+        BEGIN
+            smallVar := newInt * j;
+        END;
+      BEGIN
+        y := x;
+      END;
+   BEGIN
+      x := y;
+   END;
+
+BEGIN
+
+END. 

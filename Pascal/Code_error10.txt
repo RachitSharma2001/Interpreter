@@ -1,0 +1,6 @@
+PROGRAM part10;
+VARasd hi : REAL;
+
+BEGIN
+    hi := 1;
+END.

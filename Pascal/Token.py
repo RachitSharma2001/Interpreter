@@ -1,28 +1,33 @@
 PROCEDURE = 'PROCEDURE'
-BEGIN = 'Begin'
-END = 'End'
-DOT = 'Dot'
-ID = 'Id'
-ASSIGN = 'Assign'
-SEMI = 'Semi'
+BEGIN = 'BEGIN'
+END = 'END'
+DOT = 'DOT'
+ID = 'ID'
+ASSIGN = 'ASSIGN'
+SEMI = 'SEMI'
 VAR = 'VAR'
-PROGRAM = 'Program'
-COMMA = 'Comma'
-COLON = 'Colon'
-REAL = 'Real'
+PROGRAM = 'PROGRAM'
+COMMA = 'COMMA'
+COLON = 'COLON'
+REAL = 'REAL'
 INTEGER_DIV = 'IntDiv'
 FLOAT_DIV = 'FloatDiv'
 INTEGER_CONST = 'IntConst'
 REAL_CONST = 'RealConst'
-INTEGER = 'Integer'
-PLUS = 'Plus'
-MINUS = 'Minus'
-MUL = 'Mul'
+INTEGER = 'INTEGER'
+PLUS = '+'
+MINUS = '-'
+MUL = '*'
 LPAREN = '('
 RPAREN = ')'
 
 
 class Token(object):
+    def __init__(self, lexeme, line_num, col_num):
+        self.curr_token = (self.interpret_type(lexeme), lexeme)
+        self.line_num = line_num
+        self.col_num = col_num 
+    
     def interpret_type(self, lexeme):
         if lexeme == 'PROCEDURE':
             return PROCEDURE
@@ -67,11 +72,8 @@ class Token(object):
         elif lexeme == ')':
             return RPAREN
         # if its none of the above, then likely a variable
-        return ID
-    
-    def __init__(self, lexeme):
-        self.curr_token = (self.interpret_type(lexeme), lexeme)
-    
+        return ID 
+
     def is_type(self, given_type):
         return self.curr_token[0] == given_type
 
@@ -82,6 +84,12 @@ class Token(object):
     
     def get_type(self):
         return self.curr_token[0]
+
+    def get_line_num(self):
+        return self.line_num
+
+    def get_col_num(self):
+        return self.col_num
 
     def __repr__(self):
         return '({}, {})'.format(self.curr_token[0], self.curr_token[1])

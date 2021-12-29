@@ -1,0 +1,18 @@
+PROGRAM Main;
+   VAR x, y : REAL;
+
+   PROCEDURE AlphaA(a : INTEGER);
+      VAR c : INTEGER;
+   BEGIN
+
+   END;
+
+   PROCEDURE AlphaB(a : INTEGER);
+      VAR b : INTEGER;
+   BEGIN 
+      b := a;
+   END;
+
+BEGIN
+
+END.

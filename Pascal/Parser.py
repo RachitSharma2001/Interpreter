@@ -1,5 +1,6 @@
 from Token import *
 from Ast import Block, Proc_decl, Compound, Var_decl, Assign, Variable, Param, Constant, BinOp, UnOp
+from Error import ParserError
 
 class Parser(object):
     def __init__(self, lexer):
@@ -36,6 +37,7 @@ class Parser(object):
             total_list += var_tree_list
         while self.curr_token.is_type(PROCEDURE):
             self.eat(PROCEDURE)
+            proc_token = self.curr_token
             proc_name = self.eat(ID)[1]
             param_list = []
             if self.curr_token.is_type(LPAREN):
@@ -43,7 +45,7 @@ class Parser(object):
                 param_list += self.formal_param_list()
                 self.eat(RPAREN)
             self.eat(SEMI)
-            total_list += [Proc_decl(proc_name, param_list, self.block())]
+            total_list += [Proc_decl(proc_name, param_list, self.block(), proc_token)]
             self.eat(SEMI)
         return total_list
 
@@ -67,15 +69,15 @@ class Parser(object):
         return param_tree_list
 
     def variable_declaration(self):
-        var_names = [self.eat(ID)[1]]
+        var_names = [(self.curr_token, self.eat(ID)[1])]
         while self.curr_token.is_type(COMMA):
             self.eat(COMMA)
-            var_names.append(self.eat(ID)[1])
+            var_names.append((self.curr_token, self.eat(ID)[1]))
         self.eat(COLON)
         var_type = self.type_spec()
         var_tree_list = []
-        for name in var_names:
-            var_tree_list.append(Var_decl(name, var_type))
+        for orig_token, name in var_names:
+            var_tree_list.append(Var_decl(name, var_type, orig_token))
         return var_tree_list
 
     def type_spec(self):
@@ -83,13 +85,9 @@ class Parser(object):
         if self.curr_token.is_type(INTEGER):
             var_type = INTEGER
             self.eat(INTEGER)
-        elif self.curr_token.is_type(REAL):
+        else:
             var_type = REAL
             self.eat(REAL)
-        else:
-            raise Exception("Syntax error: invalid token", self.curr_token)
-        '''for name in names:
-            tree_list.append(Var_decl(name[1], var_type))'''
         return var_type
 
     def compound_statement(self):
@@ -121,9 +119,10 @@ class Parser(object):
 
     def assignment_statement(self):
         var_node = self.variable()
+        assign_token = self.curr_token
         self.eat(ASSIGN)
         expr_node = self.expr()
-        return Assign(var_node, expr_node)
+        return Assign(var_node, expr_node, assign_token)
     
     def expr(self):
         curr_tree = self.term()
@@ -177,25 +176,19 @@ class Parser(object):
             curr_tree = self.expr()
             self.eat(RPAREN)
             return curr_tree
-        elif self.curr_token.is_type(ID):
-            return self.variable()
         else:
-            raise Exception("Syntax error - invalid operand: ", self.curr_token)
+            return self.variable()
 
     def variable(self):
+        orig_token = self.curr_token
         var = self.eat(ID)
-        return Variable(var)
+        return Variable(var, orig_token)
        
     def eat(self, type):
         # If the type has a sought-after value, we would want to return it
-        if type in (INTEGER_CONST, REAL_CONST, ID):
-            if self.curr_token.is_type(type):
-                res = (self.curr_token.get_type(), self.curr_token.get_value())
-                self.curr_token = self.lexer.get_next_token()
-                return res
-            raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
+        if not self.curr_token.is_type(type):
+            raise ParserError(type, self.curr_token)
         else:
-            if self.curr_token.is_type(type):
-                self.curr_token = self.lexer.get_next_token()
-                return
-            raise Exception('Syntax Error: Expected {} type, instead got {}'.format(type, self.curr_token.get_type()))
+            res = (self.curr_token.get_type(), self.curr_token.get_value())
+            self.curr_token = self.lexer.get_next_token()
+            return res

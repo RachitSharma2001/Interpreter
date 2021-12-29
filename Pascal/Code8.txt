@@ -6,7 +6,7 @@ PROGRAM Main;
       PROCEDURE AlphaC(a : INTEGER; c, z : REAL; d : REAL);
         VAR y : REAL;
       BEGIN
-        y := 5;
+        y := x;
       END;
    BEGIN
       x := y;

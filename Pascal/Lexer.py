@@ -1,8 +1,12 @@
 from Token import *
+from Error import LexerError 
+
 class Lexer(object):
     def __init__(self, command):
         self.command = command
         self.pos = 0
+        self.line_num = 1
+        self.col_num = 1
 
     def get_next_token(self):
         self.skip_whitespace()
@@ -11,10 +15,10 @@ class Lexer(object):
         token = self.command[self.pos]
         if self.pos < len(self.command) - 1 and self.command[self.pos:self.pos+2] == ':=':
             self.pos += 2
-            return Token(':=')
+            return Token(':=', self.line_num, self.col_num)
         elif token in ('+', '-', '*', '/', '(', ')', ';', '.', ':', ','):
             self.pos += 1
-            return Token(token)
+            return Token(token, self.line_num, self.col_num)
         elif token.isdigit():
             self.pos += 1
             while not self.at_end():
@@ -23,7 +27,7 @@ class Lexer(object):
                     break
                 token += next_token
                 self.pos += 1
-            return Token(token)
+            return Token(token, self.line_num, self.col_num)
         elif token.isalnum():
             self.pos += 1
             while not self.at_end():
@@ -32,12 +36,19 @@ class Lexer(object):
                     break
                 token += curr_char
                 self.pos += 1
-            return Token(token)
+            return Token(token, self.line_num, self.col_num)
         else:
-            raise Exception('Invalid Token: ', token)
+            raise LexerError(token)
     
     def skip_whitespace(self):
-        while not self.at_end() and self.command[self.pos] == ' ':
+        while not self.at_end():
+            if self.command[self.pos] == '\n':
+                self.line_num += 1
+                self.col_num = 1
+            elif self.command[self.pos] == ' ':
+                self.col_num += 1
+            else:
+                break
             self.pos += 1
         return
 

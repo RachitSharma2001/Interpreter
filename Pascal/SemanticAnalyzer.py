@@ -1,4 +1,5 @@
 from Token import INTEGER, REAL
+from Error import SemanticError
 
 class Symbol(object):
     def __init__(self, name, type = None):
@@ -45,7 +46,7 @@ class ScopedSymbolTable(object):
         if symbol_name in self.curr_scoped_table.keys():
             return self.curr_scoped_table[symbol_name]
         elif self.parent_scoped_table != None:
-            return self.parent_scoped_table.lookup(symbol_name)
+            return self.parent_scoped_table.full_lookup(symbol_name)
         return None
 
     # Function to check if symbol is in the current scope
@@ -55,9 +56,9 @@ class ScopedSymbolTable(object):
         return None
 
     def __repr__(self):
-        str = "-----------------"
+        str = "-----------------\n"
         for key in self.curr_scoped_table.keys():
-            str += "{} : {}".format(key, self.curr_scoped_table[key])
+            str += "{} : {}\n".format(key, self.curr_scoped_table[key])
         str += "-----------------"
         return str
 
@@ -99,23 +100,20 @@ class SemanticAnalyzer():
     def visit_post_order_Variable(self, ast_node, get_value=True):
         name = ast_node.get_value()
         if self.curr_scope.full_lookup(name) == None:
-            raise Exception("Variable {} referenced but not defined".format(name))
+            raise SemanticError(ast_node.get_orig_token(), redef=False)
         return
     
     def visit_post_order_Assign(self, ast_node):
+        self.visit_post_order(ast_node.get_variable())
         self.visit_post_order(ast_node.get_value())
         var_name = ast_node.get_variable().get_value()
-        if self.curr_scope.full_lookup(var_name) == None:
-            raise Exception('Variable {} referenced but not defined'.format(var_name))
         return
     
     def visit_post_order_Var_decl(self, ast_node):
         name = ast_node.get_name()
         type = ast_node.get_type()
-        if self.curr_scope.lookup(type) == None:
-            raise Exception('{} is not a valid type'.format(type))
         if self.curr_scope.lookup(name) != None:
-            raise Exception('{} already defined'.format(name))
+            raise SemanticError(ast_node.get_orig_token())
         self.curr_scope.define(name, VarSymbol(name, type))
         return
     
@@ -127,7 +125,7 @@ class SemanticAnalyzer():
     def visit_post_order_Proc_decl(self, ast_node):
         proc_name = ast_node.get_proc_name()
         if self.curr_scope.lookup(proc_name):
-            raise Exception('{} already defined'.format(proc_name))
+            raise SemanticError(ast_node.get_orig_token())
         self.curr_scope.define(proc_name, ProcSymbol(proc_name))
         saved_sym_table = self.curr_scope
         self.init_sym_table(self.curr_scope)
@@ -135,7 +133,7 @@ class SemanticAnalyzer():
         for param in params:
             param_name = param.get_name()
             if self.curr_scope.lookup(param_name) != None:
-                raise Exception('{} already defined'.format(param_name))
+                raise SemanticError(ast_node.get_orig_token())
             self.curr_scope.define(param_name, VarSymbol(param_name, param.get_type()))
         self.visit_post_order(ast_node.get_body())  
         self.curr_scope = saved_sym_table
