@@ -78,8 +78,10 @@ class Token(object):
         return self.curr_token[0] == given_type
 
     def get_value(self):
-        if self.curr_token[1].isdigit():
+        if self.curr_token[0] == INTEGER_CONST:
             return int(self.curr_token[1])
+        elif self.curr_token[0] == REAL_CONST:
+            return float(self.curr_token[1])
         return self.curr_token[1]
     
     def get_type(self):

@@ -51,10 +51,10 @@ class BinOp(Ast):
         return self.operand
 
 class Variable(Ast):
-    def __init__(self, var_tuple, orig_token):
+    def __init__(self, type, name, orig_token):
         super().__init__(orig_token)
-        self.type = var_tuple[0]
-        self.name = var_tuple[1]
+        self.type = type
+        self.name = name
 
     def get_type(self):
         return self.type

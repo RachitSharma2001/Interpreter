@@ -38,7 +38,7 @@ class Parser(object):
         while self.curr_token.is_type(PROCEDURE):
             self.eat(PROCEDURE)
             proc_token = self.curr_token
-            proc_name = self.eat(ID)[1]
+            proc_name = self.eat(ID)
             param_list = []
             if self.curr_token.is_type(LPAREN):
                 self.eat(LPAREN)
@@ -57,10 +57,10 @@ class Parser(object):
         return param_list
     
     def params(self):
-        var_names = [self.eat(ID)[1]]
+        var_names = [self.eat(ID)]
         while self.curr_token.is_type(COMMA):
             self.eat(COMMA)
-            var_names.append(self.eat(ID)[1])
+            var_names.append(self.eat(ID))
         self.eat(COLON)
         var_type = self.type_spec()
         param_tree_list = []
@@ -69,10 +69,10 @@ class Parser(object):
         return param_tree_list
 
     def variable_declaration(self):
-        var_names = [(self.curr_token, self.eat(ID)[1])]
+        var_names = [(self.curr_token, self.eat(ID))]
         while self.curr_token.is_type(COMMA):
             self.eat(COMMA)
-            var_names.append((self.curr_token, self.eat(ID)[1]))
+            var_names.append((self.curr_token, self.eat(ID)))
         self.eat(COLON)
         var_type = self.type_spec()
         var_tree_list = []
@@ -167,10 +167,12 @@ class Parser(object):
             return UnOp(self.factor(), True)
         elif self.curr_token.is_type(INTEGER_CONST):     
             res = self.eat(INTEGER_CONST)
-            return Constant(int(res[1]), INTEGER)
+            return Constant(res, INTEGER)
         elif self.curr_token.is_type(REAL_CONST):
             res = self.eat(REAL_CONST)
-            return Constant(float(res[1]), REAL)
+            if res == '3.14':
+                print("HEre -> ", res)
+            return Constant(res, REAL)
         elif self.curr_token.is_type(LPAREN):
             self.eat(LPAREN)
             curr_tree = self.expr()
@@ -181,14 +183,14 @@ class Parser(object):
 
     def variable(self):
         orig_token = self.curr_token
-        var = self.eat(ID)
-        return Variable(var, orig_token)
+        var_name = self.eat(ID)
+        return Variable(orig_token.get_type(), var_name, orig_token)
        
     def eat(self, type):
         # If the type has a sought-after value, we would want to return it
         if not self.curr_token.is_type(type):
             raise ParserError(type, self.curr_token)
         else:
-            res = (self.curr_token.get_type(), self.curr_token.get_value())
+            res = self.curr_token.get_value()
             self.curr_token = self.lexer.get_next_token()
             return res
