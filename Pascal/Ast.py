@@ -63,8 +63,8 @@ class Variable(Ast):
         return self.name
     
 class Assign(Ast):
-    def __init__(self, var, value, orig_token):
-        super().__init__(orig_token)
+    def __init__(self, var, value):
+        super().__init__()
         self.var = var 
         self.value = value 
 

@@ -1,3 +1,4 @@
+# Global identifiers representing generic tokens allowed in code
 PROCEDURE = 'PROCEDURE'
 BEGIN = 'BEGIN'
 END = 'END'
@@ -21,6 +22,7 @@ MUL = '*'
 LPAREN = '('
 RPAREN = ')'
 
+# Dictionary to map token strings to their identifiers
 token_dict = {
     'PROGRAM' : PROGRAM,
     'PROCEDURE' : PROCEDURE,

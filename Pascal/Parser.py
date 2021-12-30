@@ -69,15 +69,17 @@ class Parser(object):
         return param_tree_list
 
     def variable_declaration(self):
-        var_names = [(self.curr_token, self.eat(ID))]
+        orig_tokens = [self.curr_token]
+        var_names = [self.eat(ID)]
         while self.curr_token.is_type(COMMA):
             self.eat(COMMA)
-            var_names.append((self.curr_token, self.eat(ID)))
+            orig_tokens.append(self.curr_token)
+            var_names.append(self.eat(ID))
         self.eat(COLON)
         var_type = self.type_spec()
         var_tree_list = []
-        for orig_token, name in var_names:
-            var_tree_list.append(Var_decl(name, var_type, orig_token))
+        for ind in range(len(var_names)):
+            var_tree_list.append(Var_decl(var_names[ind], var_type, orig_tokens[ind]))
         return var_tree_list
 
     def type_spec(self):
@@ -122,7 +124,7 @@ class Parser(object):
         assign_token = self.curr_token
         self.eat(ASSIGN)
         expr_node = self.expr()
-        return Assign(var_node, expr_node, assign_token)
+        return Assign(var_node, expr_node)
     
     def expr(self):
         curr_tree = self.term()
