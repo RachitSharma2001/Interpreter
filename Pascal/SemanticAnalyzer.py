@@ -88,17 +88,17 @@ class SemanticAnalyzer():
     def visit_post_order_Constant(self, ast_node):
         return
 
-    def visit_post_order_UnOp(self, ast_node):
+    def visit_post_order_UnaryOperator(self, ast_node):
         self.visit_post_order(ast_node.get_child())
         return
     
-    def visit_post_order_BinOp(self, ast_node):
+    def visit_post_order_BinaryOperator(self, ast_node):
         self.visit_post_order(ast_node.get_left_child())
         self.visit_post_order(ast_node.get_right_child())
         return 
     
-    def visit_post_order_Variable(self, ast_node, get_value=True):
-        name = ast_node.get_value()
+    def visit_post_order_Variable(self, ast_node):
+        name = ast_node.get_name()
         if self.curr_scope.full_lookup(name) == None:
             raise SemanticError(ast_node.get_orig_token(), redef=False)
         return
@@ -106,7 +106,7 @@ class SemanticAnalyzer():
     def visit_post_order_Assign(self, ast_node):
         self.visit_post_order(ast_node.get_variable())
         self.visit_post_order(ast_node.get_value())
-        var_name = ast_node.get_variable().get_value()
+        var_name = ast_node.get_variable().get_name()
         return
     
     def visit_post_order_Var_decl(self, ast_node):
@@ -123,7 +123,7 @@ class SemanticAnalyzer():
         return
     
     def visit_post_order_Proc_decl(self, ast_node):
-        proc_name = ast_node.get_proc_name()
+        proc_name = ast_node.get_name()
         if self.curr_scope.lookup(proc_name):
             raise SemanticError(ast_node.get_orig_token())
         self.curr_scope.define(proc_name, ProcSymbol(proc_name))

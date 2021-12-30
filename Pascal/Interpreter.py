@@ -32,11 +32,11 @@ class Interpreter(object):
     def visit_post_order_Constant(self, ast_node):
         return ast_node.get_value()
 
-    def visit_post_order_UnOp(self, ast_node):
+    def visit_post_order_UnaryOperator(self, ast_node):
         value = self.visit_post_order(ast_node.get_child())
         return (-1 if ast_node.is_negative() else 1) * value
     
-    def visit_post_order_BinOp(self, ast_node):
+    def visit_post_order_BinaryOperator(self, ast_node):
         left_side = self.visit_post_order(ast_node.get_left_child())
         right_side = self.visit_post_order(ast_node.get_right_child())
         op = ast_node.get_operand()
@@ -52,14 +52,14 @@ class Interpreter(object):
             return int(left_side / right_side)
     
     def visit_post_order_Variable(self, ast_node, get_value=True):
-        name = ast_node.get_value()
+        name = ast_node.get_name()
         if get_value:
             return self.global_vars[name]
         return name
     
     def visit_post_order_Assign(self, ast_node):
         value = self.visit_post_order(ast_node.get_value())
-        var_name = ast_node.get_variable().get_value()
+        var_name = ast_node.get_variable().get_name()
         self.global_vars[var_name] = value 
     
     def visit_post_order_Var_decl(self, ast_node):

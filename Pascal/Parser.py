@@ -1,5 +1,5 @@
 from Token import *
-from Ast import Block, Proc_decl, Compound, Var_decl, Assign, Variable, Param, Constant, BinOp, UnOp
+from Ast import Block, Proc_decl, Compound, Var_decl, Assign, Variable, Param, Constant, BinaryOperator, UnaryOperator
 from Error import ParserError
 
 class Parser(object):
@@ -10,53 +10,61 @@ class Parser(object):
             return
     
     def generate_ast(self):
-        return self.program()
+        return self.analyze_header()
 
-    def program(self):
+    def analyze_header(self):
         self.eat(PROGRAM)
         self.eat(ID)
         self.eat(SEMI)
-        tree = self.block()
+        tree = self.analyze_body()
         self.eat(DOT)
         return tree
    
-    def block(self):
-        dec_tree_list = self.declarations()
-        compound_tree = self.compound_statement()
+    def analyze_body(self):
+        dec_tree_list = self.get_tree_from_declarations()
+        compound_tree = self.get_tree_from_compound_statement()
         return Block(dec_tree_list, compound_tree)
 
-    def declarations(self):
-        total_list = []
+    def get_tree_from_declarations(self):
+        group_of_declarations = []
         if self.curr_token.is_type(VAR):
-            self.eat(VAR)
-            var_tree_list = []
-            while self.curr_token.is_type(ID):
-                new_var_trees = self.variable_declaration()
-                self.eat(SEMI)
-                var_tree_list += new_var_trees
-            total_list += var_tree_list
+            group_of_declarations += self.get_group_of_variables()
+        if self.curr_token.is_type(PROCEDURE):
+            group_of_declarations += self.get_group_of_procedures()
+        return group_of_declarations
+
+    def get_group_of_variables(self):
+        group_of_variables = []
+        self.eat(VAR)
+        while self.curr_token.is_type(ID):
+            group_of_variables += self.get_individual_variable()
+            self.eat(SEMI)
+        return group_of_variables
+
+    def get_group_of_procedures(self):
+        group_of_procedures = []
         while self.curr_token.is_type(PROCEDURE):
             self.eat(PROCEDURE)
-            proc_token = self.curr_token
-            proc_name = self.eat(ID)
-            param_list = []
+            procedure_token = self.curr_token
+            procedure_name = self.eat(ID)
+            group_of_params = []
             if self.curr_token.is_type(LPAREN):
                 self.eat(LPAREN)
-                param_list += self.formal_param_list()
+                group_of_params += self.get_group_of_parameters()
                 self.eat(RPAREN)
             self.eat(SEMI)
-            total_list += [Proc_decl(proc_name, param_list, self.block(), proc_token)]
+            group_of_procedures += [Proc_decl(procedure_name, group_of_params, self.analyze_body(), procedure_token)]
             self.eat(SEMI)
-        return total_list
-
-    def formal_param_list(self):
-        param_list = self.params()
+        return group_of_procedures
+    
+    def get_group_of_parameters(self):
+        param_list = self.get_individual_parameter()
         if self.curr_token.is_type(SEMI):
             self.eat(SEMI)
-            param_list += self.formal_param_list()
+            param_list += self.get_group_of_parameters()
         return param_list
     
-    def params(self):
+    def get_individual_parameter(self):
         var_names = [self.eat(ID)]
         while self.curr_token.is_type(COMMA):
             self.eat(COMMA)
@@ -68,7 +76,7 @@ class Parser(object):
             param_tree_list.append(Param(name, var_type))
         return param_tree_list
 
-    def variable_declaration(self):
+    def get_individual_variable(self):
         orig_tokens = [self.curr_token]
         var_names = [self.eat(ID)]
         while self.curr_token.is_type(COMMA):
@@ -92,70 +100,70 @@ class Parser(object):
             self.eat(REAL)
         return var_type
 
-    def compound_statement(self):
+    def get_tree_from_compound_statement(self):
         self.eat(BEGIN)
-        tree_list = self.statement_list()
+        group_of_statements = self.get_group_of_statements()
         self.eat(END)
-        return Compound(tree_list)
+        return Compound(group_of_statements)
     
-    def statement_list(self):
-        returned_node = self.statement()
+    def get_group_of_statements(self):
+        returned_node = self.get_tree_from_statement()
         if returned_node == None:
             return []
         list_nodes = [returned_node]
         while self.curr_token.is_type(SEMI):
             self.eat(SEMI)
-            returned_node = self.statement()
+            returned_node = self.get_tree_from_statement()
             if returned_node == None:
                 break
             list_nodes.append(returned_node)
         return list_nodes
     
-    def statement(self):
+    def get_tree_from_statement(self):
         if self.curr_token.is_type(BEGIN):
-            return self.compound_statement()
+            return self.get_tree_from_compound_statement()
         elif self.curr_token.is_type(ID):
-            return self.assignment_statement()
+            return self.get_tree_from_assignment()
         else:
             return None
 
-    def assignment_statement(self):
+    def get_tree_from_assignment(self):
         var_node = self.variable()
         assign_token = self.curr_token
         self.eat(ASSIGN)
-        expr_node = self.expr()
+        expr_node = self.get_tree_from_arithmetic()
         return Assign(var_node, expr_node)
     
-    def expr(self):
-        curr_tree = self.term()
+    def get_tree_from_arithmetic(self):
+        curr_tree = self.get_tree_from_muldiv()
         while not self.lexer.at_end():
             if self.curr_token.is_type(PLUS):
                 self.eat(PLUS)
-                right_child = self.term()
-                curr_tree = BinOp(curr_tree, '+', right_child)
+                right_child = self.get_tree_from_muldiv()
+                curr_tree = BinaryOperator(curr_tree, '+', right_child)
             elif self.curr_token.is_type(MINUS):
                 self.eat(MINUS)
-                right_child = self.term()
-                curr_tree = BinOp(curr_tree, '-', right_child)
+                right_child = self.get_tree_from_muldiv()
+                curr_tree = BinaryOperator(curr_tree, '-', right_child)
             else:
                 break
-        return curr_tree 
-    
-    def term(self):
+        return curr_tree
+
+    def get_tree_from_muldiv(self):
         curr_tree = self.factor()
         while not self.lexer.at_end():
             if self.curr_token.is_type(MUL):
                 self.eat(MUL)
                 right_child = self.factor()
-                curr_tree = BinOp(curr_tree, '*', right_child)
+                curr_tree = BinaryOperator(curr_tree, '*', right_child)
             elif self.curr_token.is_type(INTEGER_DIV):
                 self.eat(INTEGER_DIV)
                 right_child = self.factor()
-                curr_tree = BinOp(curr_tree, 'DIV', right_child)
+                curr_tree = BinaryOperator(curr_tree, 'DIV', right_child)
             elif self.curr_token.is_type(FLOAT_DIV):
                 self.eat(FLOAT_DIV)
                 right_child = self.factor()
-                curr_tree = BinOp(curr_tree, '/', right_child)  
+                curr_tree = BinaryOperator(curr_tree, '/', right_child)  
             else:
                 break
         return curr_tree
@@ -163,10 +171,10 @@ class Parser(object):
     def factor(self):
         if self.curr_token.is_type(PLUS):
             self.eat(PLUS)
-            return UnOp(self.factor(), False)
+            return UnaryOperator(self.factor(), False)
         elif self.curr_token.is_type(MINUS):
             self.eat(MINUS)
-            return UnOp(self.factor(), True)
+            return UnaryOperator(self.factor(), True)
         elif self.curr_token.is_type(INTEGER_CONST):     
             res = self.eat(INTEGER_CONST)
             return Constant(res, INTEGER)
@@ -175,7 +183,7 @@ class Parser(object):
             return Constant(res, REAL)
         elif self.curr_token.is_type(LPAREN):
             self.eat(LPAREN)
-            curr_tree = self.expr()
+            curr_tree = self.get_tree_from_arithmetic()
             self.eat(RPAREN)
             return curr_tree
         else:

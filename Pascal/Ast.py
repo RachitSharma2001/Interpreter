@@ -22,19 +22,19 @@ class Constant(Ast):
     def get_value(self):
         return self.value
 
-class UnOp(Ast):
-    def __init__(self, child, negative):
+class UnaryOperator(Ast):
+    def __init__(self, child, has_neg_sign):
         super().__init__()
         self.child = child 
-        self.negative = negative
+        self.has_neg_sign = has_neg_sign
     
     def is_negative(self):
-        return self.negative
+        return self.has_neg_sign
     
     def get_child(self):
         return self.child
 
-class BinOp(Ast):
+class BinaryOperator(Ast):
     def __init__(self, left_child, operand, right_child):
         super().__init__()
         self.left_child = left_child
@@ -59,7 +59,7 @@ class Variable(Ast):
     def get_type(self):
         return self.type
 
-    def get_value(self):
+    def get_name(self):
         return self.name
     
 class Assign(Ast):
@@ -80,9 +80,6 @@ class Var_decl(Ast):
         self.var_name = var_name 
         self.var_type = var_type
     
-    def get_orig_token(self):
-        return self.orig_token
-
     def get_name(self):
         return self.var_name
     
@@ -102,14 +99,14 @@ class Param(Ast):
         return self.param_type
 
 class Proc_decl(Ast):
-    def __init__(self, proc_name, param_children, body, orig_token):
+    def __init__(self, name, param_children, body, orig_token):
         super().__init__(orig_token)
-        self.proc_name = proc_name
+        self.name = name
         self.param_children = param_children
         self.body = body
     
-    def get_proc_name(self):
-        return self.proc_name
+    def get_name(self):
+        return self.name
 
     def get_params(self):
         return self.param_children
