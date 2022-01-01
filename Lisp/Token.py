@@ -54,5 +54,11 @@ class Token(object):
     def is_type(self, given_type):
         return given_type == self.token_type
     
+    def get_content(self):
+        return self.content
+    
+    def get_type(self):
+        return self.token_type
+
     def __repr__(self):
         return '("{}", {})'.format(self.content, self.token_type)
