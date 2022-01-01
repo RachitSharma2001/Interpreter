@@ -9,7 +9,7 @@ class Parser(object):
         lines_of_code = []
         while self.curr_token != None:
             lines_of_code.append(self.get_ast_from_single_line())
-        return lines_of_code
+        return Root(lines_of_code)
     
     def get_ast_from_single_line(self):
         if self.curr_token.is_type(LPAREN):

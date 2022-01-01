@@ -17,11 +17,10 @@ class ArithmeticOperator(Ast):
         self.group_of_children = group_of_children
     
     def __repr__(self):
-        printable_repr = "["
+        printable_repr = ""
         for child in self.group_of_children:
             printable_repr += child.__repr__()
-            printable_repr += self.operator
-        printable_repr += "]"
+        printable_repr += self.operator + ", "
         return printable_repr
 
 class UnaryOperator(Ast):
@@ -30,7 +29,7 @@ class UnaryOperator(Ast):
         self.child = child 
     
     def __repr__(self):
-        printable_repr = "(" + self.operator + self.child.__repr__() + ")"
+        printable_repr = '{}UnOp({}), '.format(self.child.__repr__(), self.operator)
         return printable_repr
 
 class NumericConstant(Ast):
@@ -39,5 +38,5 @@ class NumericConstant(Ast):
         self.value = value
     
     def __repr__(self):
-        printable_repr = '({}, {})'.format(self.type, self.value)
+        printable_repr = str(self.value) + ", "
         return printable_repr
