@@ -1,5 +1,6 @@
 import os
 from Interpreter import Interpreter
+from Error import ParserError
 
 def get_content_from_file(file_dir, file):
     file_content = ""
@@ -48,8 +49,8 @@ def check_each_item_equal(output_file_contents, actual_file_contents):
 
 input_file_dir = 'Tests/Input/'
 output_file_dir = 'Tests/Output/'
-input_file_group = os.listdir('Tests/Input')
-output_file_group = os.listdir('Tests/Output')
+input_file_group = os.listdir(input_file_dir)
+output_file_group = os.listdir(output_file_dir)
 interpreter = Interpreter()
 
 if has_unequal_len(input_file_group, output_file_group):
@@ -64,3 +65,6 @@ for file_index in range(len(input_file_group)):
         all_tests_pass = False
 if all_tests_pass:
     print('All Tests Passed!')
+
+print("------------------------------------------------------")
+
