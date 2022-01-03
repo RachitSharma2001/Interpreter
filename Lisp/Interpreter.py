@@ -21,42 +21,44 @@ class Interpreter():
         raise Exception('Given AST class {} does not exist'.format(type(ast).__name__))
     
     def visit_Root(self, root):
-        #print('Visiting root: ', root)
-        values_of_children = []
+        results_of_children = []
         for child in root.get_children():
-            values_of_children.append(str(self.generic_visit(child)))
-        return values_of_children
+            results_of_children.append(str(self.generic_visit(child)))
+        return results_of_children
     
     def visit_ArithmeticOperator(self, arithmatic_op):
-        #print('Visiting arithmetic op: ', arithmatic_op)
         operator = arithmatic_op.get_operator()
-        curr_value = None
+        curr_sum = None
         for child in arithmatic_op.get_children():
             child_value = self.generic_visit(child)
-            if curr_value == None:
-                curr_value = child_value
-            elif operator == '+':
-                curr_value += child_value
-            elif operator == '-':
-                curr_value -= child_value
-            elif operator == '*':
-                curr_value *= child_value
-            else:
-                if child_value == 0:
-                    raise RuntimeError('Runtime Exception: Divide by zero')
-                elif isinstance(child_value, int):
-                    curr_value = int(curr_value / child_value)
-                else:
-                    curr_value /= child_value
-        return curr_value
+            curr_sum = self.perform_numeric_operation(curr_sum, child_value, operator)
+        return curr_sum
     
+    def perform_numeric_operation(self, curr_sum, new_value, operator):
+        if curr_sum == None:
+            return new_value
+        elif operator == '+':
+            return curr_sum + new_value
+        elif operator == '-':
+            return curr_sum - new_value
+        elif operator == '*':
+            return curr_sum * new_value
+        elif operator == '/':
+            if new_value == 0:
+                raise RuntimeError('Runtime Exception: Divide by zero')
+            # Check type of value - needed because python division results in float value no matter inputs
+            elif isinstance(new_value, int):
+                return int(curr_sum / new_value)
+            else:
+                return curr_sum / new_value
+
     def visit_UnaryOperator(self, unary_op):
-        #print('Visiting unary op: ', unary_op)
         operator = unary_op.get_operator()
-        curr_value = self.generic_visit(unary_op.get_child())
-        return -curr_value if operator == '-' else curr_value 
+        child_value = self.generic_visit(unary_op.get_child())
+        return -child_value if operator == '-' else child_value 
 
     def visit_NumericConstant(self, num_const):
+        # Check and assign type - needed in order to preserve type
         if num_const.get_type() == INT_CONST:
             return int(num_const.get_value())
         return float(num_const.get_value())       
