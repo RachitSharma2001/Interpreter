@@ -40,7 +40,7 @@ class Parser(object):
         return NumericConstant(token_type, self.process_token_of_type(REAL_CONST))
 
     def get_arithmetic_expr(self):
-        if self.curr_token.get_type() in (PLUS,MINUS,MUL,DIV):
+        if self.curr_token != None and self.curr_token.get_type() in (PLUS,MINUS,MUL,DIV):
             operator = self.process_token_of_type(self.curr_token.get_type())
             group_of_children = [self.get_ast_from_single_line()]
             while not (self.curr_token == None or self.curr_token.is_type(RPAREN)):
@@ -50,7 +50,9 @@ class Parser(object):
             raise ParserError('Binary Operator', self.curr_token.get_type())
     
     def process_token_of_type(self, type):
-        if not self.curr_token.is_type(type):
+        if self.curr_token == None:
+            raise ParserError(type, None)
+        elif not self.curr_token.is_type(type):
             raise ParserError(type, self.curr_token.get_type())
         type_adapted_content = self.curr_token.get_content()
         if type == INT_CONST:

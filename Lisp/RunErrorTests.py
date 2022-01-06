@@ -34,6 +34,7 @@ for file_index in range(len(error_input_files)):
     code_with_error = get_file_content_as_one(input_file_dir, error_input_files[file_index])
     type_of_error = get_file_content_as_one(output_file_dir, error_output_files[file_index])
     check_exception(code_with_error, type_of_error, interpreter)
+    print('Test {} passed!'.format(file_index+1))
 
-print('All Tests Passed!')
 print("------------------------------------------------------")
+print('All Tests Passed!')
