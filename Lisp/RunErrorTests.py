@@ -16,10 +16,15 @@ def get_file_content_as_one(file_dir, file):
 def has_unequal_len(group, compare_group):
     return len(group) != len(compare_group)
 
-def check_exception(code_with_error, type_of_error, interpreter):
+def does_interpreter_raise_exception(code_with_error, type_of_error, interpreter):
     if type_of_error == 'PE':
-        with pytest.raises(ParserError):
-            interpreter.interpret(code_with_error)
+        try:
+            with pytest.raises(ParserError):
+                interpreter.interpret(code_with_error)
+        except:
+            return False
+        else:
+            return True
 
 input_file_dir = 'Tests/ErrorInput/'
 output_file_dir = 'Tests/ErrorOutput/'
@@ -33,8 +38,11 @@ if has_unequal_len(error_input_files, error_output_files):
 for file_index in range(len(error_input_files)):
     code_with_error = get_file_content_as_one(input_file_dir, error_input_files[file_index])
     type_of_error = get_file_content_as_one(output_file_dir, error_output_files[file_index])
-    check_exception(code_with_error, type_of_error, interpreter)
-    print('Test {} passed!'.format(file_index+1))
+    if not does_interpreter_raise_exception(code_with_error, type_of_error, interpreter):
+        print('Test {} FAILED!'.format(file_index+1))
+        quit()
+    else:
+        print('Test {} passed!'.format(file_index+1))
 
 print("------------------------------------------------------")
 print('All Tests Passed!')

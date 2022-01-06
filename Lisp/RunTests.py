@@ -1,4 +1,5 @@
 import os
+import pytest
 from Interpreter import Interpreter
 from Error import ParserError
 
@@ -24,28 +25,13 @@ def get_group_of_lines_from_file(file_dir, file):
 def has_unequal_len(group, compare_group):
     return len(group) != len(compare_group)
 
-''' 
-    expected_output - string
-    actual_output - integer or float
-'''
-def detect_diff_in_content(expected_output, actual_output):
-    str_version_of_actual = str(actual_output)
-    if has_unequal_len(expected_output, str_version_of_actual):
-        return True
-    for char_index in range(len(expected_output)):
-        if expected_output[char_index] != str_version_of_actual[char_index]:
-            return True
-    return False 
-
-def check_each_item_equal(output_file_contents, actual_file_contents):
-    if has_unequal_len(output_file_contents, actual_file_contents):
+def is_interpreter_output_correct(expected_output, interpreter_output):
+    try:
+        assert expected_output == interpreter_output
+    except AssertionError:
         return False
-    for output_index in range(len(output_file_contents)):
-        expected_output = output_file_contents[output_index]
-        actual_output = actual_file_contents[output_index]
-        if detect_diff_in_content(expected_output, actual_output):
-            return False
-    return True 
+    else:
+        return True
 
 input_file_dir = 'Tests/Input/'
 output_file_dir = 'Tests/Output/'
@@ -55,16 +41,19 @@ interpreter = Interpreter()
 
 if has_unequal_len(input_file_group, output_file_group):
     raise Exception('Unequal amount of input and output files')
-all_tests_pass = True
+
 for file_index in range(len(input_file_group)):
-    input_file_contents = get_file_content_as_one(input_file_dir, input_file_group[file_index])
-    output_file_contents = get_group_of_lines_from_file(output_file_dir, output_file_group[file_index])
-    output_from_interpreter = interpreter.interpret(input_file_contents)
-    if not check_each_item_equal(output_file_contents, output_from_interpreter):
-        print('Test #{} failed. Expected {}, got {}'.format(file_index+1, output_file_contents, output_from_interpreter))
-        all_tests_pass = False
-if all_tests_pass:
-    print('adfsdf Tests Passed!')
+    input_code = get_file_content_as_one(input_file_dir, input_file_group[file_index])
+    output_from_interpreter = interpreter.interpret(input_code)
+    expected_output = get_group_of_lines_from_file(output_file_dir, output_file_group[file_index])
+    if not is_interpreter_output_correct(expected_output, output_from_interpreter):
+        print('Test {} FAILED!'.format(file_index+1))
+        quit()
+    else:
+        print('Test {} passed'.format(file_index+1))
 
 print("------------------------------------------------------")
+print('All Tests Passed!')
+
+
 
