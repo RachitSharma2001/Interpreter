@@ -7,8 +7,8 @@ class Interpreter():
     def __init__(self):
         pass 
     
-    def interpret(self, input_file_contents):
-        parser = Parser(Lexer(input_file_contents))
+    def interpret(self, user_code):
+        parser = Parser(Lexer(user_code))
         ast = parser.get_ast_from_code()
         return self.generic_visit(ast)
         
@@ -21,10 +21,10 @@ class Interpreter():
         raise Exception('Given AST class {} does not exist'.format(type(ast).__name__))
     
     def visit_Root(self, root):
-        results_of_children = []
+        output_of_children = []
         for child in root.get_children():
-            results_of_children.append(str(self.generic_visit(child)))
-        return results_of_children
+            output_of_children.append(str(self.generic_visit(child)))
+        return output_of_children
     
     def visit_ArithmeticOperator(self, arithmatic_op):
         operator = arithmatic_op.get_operator()
@@ -34,23 +34,23 @@ class Interpreter():
             curr_sum = self.perform_numeric_operation(curr_sum, child_value, operator)
         return curr_sum
     
-    def perform_numeric_operation(self, curr_sum, new_value, operator):
+    def perform_numeric_operation(self, curr_sum, addend, operator):
         if curr_sum == None:
-            return new_value
+            return addend
         elif operator == '+':
-            return curr_sum + new_value
+            return curr_sum + addend
         elif operator == '-':
-            return curr_sum - new_value
+            return curr_sum - addend
         elif operator == '*':
-            return curr_sum * new_value
+            return curr_sum * addend
         elif operator == '/':
-            if new_value == 0:
+            if addend == 0:
                 raise RuntimeError('Runtime Exception: Divide by zero')
             # Check type of value - needed because python division results in float value no matter inputs
-            elif isinstance(new_value, int):
-                return int(curr_sum / new_value)
+            elif isinstance(addend, int):
+                return int(curr_sum / addend)
             else:
-                return curr_sum / new_value
+                return curr_sum / addend
 
     def visit_UnaryOperator(self, unary_op):
         operator = unary_op.get_operator()

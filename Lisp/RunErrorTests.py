@@ -1,24 +1,39 @@
-import unittest
+import os
+import pytest
+from Error import ParserError
+from Interpreter import Interpreter
 
-class TestParserErrors(unittest.TestCase):
-    def test_no_numbers_expr(self):
-        
+def get_file_content_as_one(file_dir, file):
+    file_content = ""
+    with open(file_dir+file) as opened_file:
+        for line in opened_file.readlines():
+            file_content += line
+    return file_content
 
+'''
+    group, compare_group - list of items or a string 
+'''
+def has_unequal_len(group, compare_group):
+    return len(group) != len(compare_group)
 
-def check_error_raised(self, input_file_contents, expect_error_content, interpreter):
-    with self.assertRaises(ParserError, expect_error_content):
-        interpreter.interpret(input_file_contents)
-
+def check_exception(code_with_error, type_of_error, interpreter):
+    if type_of_error == 'PE':
+        with pytest.raises(ParserError):
+            interpreter.interpret(code_with_error)
 
 input_file_dir = 'Tests/ErrorInput/'
 output_file_dir = 'Tests/ErrorOutput/'
-input_file_group = os.listdir(input_file_dir)
-output_file_group = os.listdir(output_file_dir)
+error_input_files = os.listdir(input_file_dir)
+error_output_files = os.listdir(output_file_dir)
+interpreter = Interpreter()
 
-if has_unequal_len(input_file_group, output_file_group):
-    raise Exception('Unequal amount of error input and output files')
-for file_index in range(len(input_file_group)):
-    input_file_contents = get_content_from_file(input_file_dir, input_file_group[file_index])
-    expect_error_content = get_content_from_file(output_file_dir, output_file_group[file_index])
-    self.check_error_raised(input_file_contents, expect_error_content, interpreter)
-print ('All Error Tests Passed!')
+if has_unequal_len(error_input_files, error_output_files):
+    raise Exception('Error input as different amount of files than error output!')
+
+for file_index in range(len(error_input_files)):
+    code_with_error = get_file_content_as_one(input_file_dir, error_input_files[file_index])
+    type_of_error = get_file_content_as_one(output_file_dir, error_output_files[file_index])
+    check_exception(code_with_error, type_of_error, interpreter)
+
+print('All Tests Passed!')
+print("------------------------------------------------------")
