@@ -32,6 +32,32 @@ class ArithmeticOperator(Ast):
         printable_repr += self.operator + ", "
         return printable_repr
 
+class VariableDeclaration(Ast):
+    def __init__(self, var_name, var_value):
+        self.var_name = var_name
+        self.var_value = var_value
+    
+    def get_var_name(self):
+        return self.var_name
+
+    def get_var_value(self):
+        return self.var_value
+
+    def __repr__(self):
+        printable_repr = 'Variable_Declaration({}, {}), '.format(self.var_name, self.var_value)
+        return printable_repr
+
+class SingleVariable(Ast):
+    def __init__(self, var_name):
+        self.var_name = var_name
+    
+    def get_var_name(self):
+        return self.var_name
+
+    def __repr__(self):
+        printable_repr = 'SingleVariable({})'.format(self.var_name)
+        return printable_repr
+
 class UnaryOperator(Ast):
     def __init__(self, operator, child):
         self.operator = operator
@@ -44,7 +70,7 @@ class UnaryOperator(Ast):
         return self.child
 
     def __repr__(self):
-        printable_repr = '{}UnOp({}), '.format(self.child.__repr__(), self.operator)
+        printable_repr = '{}UnOp({}), '.format(self.child, self.operator)
         return printable_repr
 
 class NumericConstant(Ast):
