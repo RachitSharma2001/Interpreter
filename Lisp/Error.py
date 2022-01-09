@@ -7,17 +7,13 @@ class Error(Exception):
 
 class LexerError(Error):
     def __init__(self, error_msg):
-        self.error_msg = error_msg
         super().__init__(error_msg)
 
 class ParserError(Error):
-    def __init__(self, expected_type, given_type):
-        self.expected_type = expected_type
-        self.given_type = given_type
-        super().__init__('Expected {}, received {}'.format(expected_type, given_type))
+    def __init__(self, error_msg):
+        super().__init__(error_msg)
 
 class RuntimeError(Error):
     def __init__(self, error_msg):
-        self.error_msg = error_msg
         super().__init__(error_msg)
     

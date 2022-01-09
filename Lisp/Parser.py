@@ -29,7 +29,7 @@ class Parser(object):
         elif self.curr_token.get_type() in (PLUS, MINUS, INT_CONST, REAL_CONST, ID): 
             return self.get_single_number()
         else:
-            raise ParserError(LPAREN, self.curr_token.get_type())
+            raise ParserError('Unable to parse token {}'.format(self.curr_token.get_type()))
     
     def get_parenthesis_expr(self):
         self.process_token_of_type(LPAREN)
@@ -52,7 +52,7 @@ class Parser(object):
         elif curr_token_type == ID:
             return SingleVariable(self.process_token_of_type(ID))
         else:
-            raise ParserError('Value Operator', curr_token_type)
+            raise ParserError('Unexpected Token type {}'.format(curr_token_type))
 
     def get_variable_decl_expr(self):
         self.process_token_of_type(DEFINE)
@@ -70,23 +70,20 @@ class Parser(object):
             return self.get_single_number()
 
     def get_arith_op_expr(self):
-        print('In arith op: ', self.curr_token)
         if self.curr_token != None and self.curr_token.get_type() in (PLUS,MINUS,MUL,DIV):
             operator = self.process_token_of_type(self.curr_token.get_type())
             group_of_children = [self.get_math_expr()]
             while not (self.curr_token == None or self.curr_token.is_type(RPAREN)):
-                print('In arith op: ', self.curr_token)
                 group_of_children.append(self.get_math_expr())
-            print('In arith op, group of children: ', group_of_children)
             return ArithmeticOperator(operator, group_of_children)
         else:
-            raise ParserError('Binary Operator', self.curr_token.get_type())
+            raise ParserError('Expected Binary Operator, instead got {}'.format(self.curr_token))
 
     def process_token_of_type(self, type):
         if self.curr_token == None:
-            raise ParserError(type, None)
+            raise ParserError('Expected {}, instead got None'.format(type))
         elif not self.curr_token.is_type(type):
-            raise ParserError(type, self.curr_token.get_type())
+            raise ParserError('Expected {}, instead got {}'.format(type, self.curr_token.get_type()))
         type_adapted_content = self.curr_token.get_content()
         if type == INT_CONST:
             type_adapted_content = int(type_adapted_content)
