@@ -19,7 +19,7 @@ class Lexer(object):
             return Token(numeric_value)
         elif self.curr_char_is_valid_varchar():
             var_name = ''
-            while self.curr_char_is_valid_varchar():
+            while not self.at_end() and self.curr_char_is_valid_varchar():
                 var_name += self.get_curr_char()
                 self.advance() 
             return Token(var_name)
