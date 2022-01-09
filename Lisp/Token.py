@@ -9,6 +9,8 @@ INT_CONST = 'IntConst'
 REAL_CONST = 'RealConst'
 LPAREN = 'LPAREN'
 RPAREN = 'RPAREN'
+DEFINE = 'DEFINE'
+ID = 'ID'
 PLUS, MINUS, MUL, DIV = 'PLUS', 'MINUS', 'MUL', 'DIV'
 
 # Dictionary mapping characters to respective tokens 
@@ -18,7 +20,8 @@ str_to_token = {
     '+' : PLUS,
     '-' : MINUS,
     '*' : MUL,
-    '/' : DIV
+    '/' : DIV,
+    'define': DEFINE
 }
 
 class Token(object):
@@ -34,7 +37,7 @@ class Token(object):
         elif self.is_real(orig_char_stream):
             return REAL_CONST
         else:
-            raise Exception('Character stream {} is not valid'.format(orig_char_stream))
+            return ID
 
     def is_integer(self, stream_of_chars):
         for char in stream_of_chars:

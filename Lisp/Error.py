@@ -5,6 +5,11 @@ class Error(Exception):
     def __str__(self):
         return self.message
 
+class LexerError(Error):
+    def __init__(self, error_msg):
+        self.error_msg = error_msg
+        super().__init__(error_msg)
+
 class ParserError(Error):
     def __init__(self, expected_type, given_type):
         self.expected_type = expected_type

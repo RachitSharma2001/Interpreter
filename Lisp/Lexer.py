@@ -1,4 +1,5 @@
 from Token import *
+from Error import LexerError
 
 class Lexer(object):
     def __init__(self, code_to_tokenize):
@@ -16,8 +17,14 @@ class Lexer(object):
         elif self.curr_char_is_int():
             numeric_value = self.get_numeric_value()
             return Token(numeric_value)
+        elif self.curr_char_is_valid_varchar():
+            var_name = ''
+            while self.curr_char_is_valid_varchar():
+                var_name += self.get_curr_char()
+                self.advance() 
+            return Token(var_name)
         else:
-            raise Exception('Unable to tokenize {} at position {}'.format(self.code_to_tokenize, self.pos_in_code))
+            raise LexerError('Unable to tokenize {} at position {}'.format(self.code_to_tokenize, self.pos_in_code))
     
     def advance(self):
         self.pos_in_code += 1
@@ -41,6 +48,10 @@ class Lexer(object):
             numeric_value += self.get_curr_char()
             self.advance()
         return numeric_value
+    
+    def curr_char_is_valid_varchar(self):
+        curr_char = self.get_curr_char()
+        return curr_char.isalnum() or curr_char == '_'
 
     def get_curr_char(self):
         return self.code_to_tokenize[self.pos_in_code]
