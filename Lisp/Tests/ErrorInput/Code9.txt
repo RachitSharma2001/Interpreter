@@ -1,0 +1,2 @@
+(define x 908)
+(define y yy_x)

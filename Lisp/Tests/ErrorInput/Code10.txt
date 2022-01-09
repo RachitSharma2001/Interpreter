@@ -1,0 +1,2 @@
+(define var 0)
+(/ 12 var)

@@ -10,6 +10,7 @@ class Interpreter():
     def interpret(self, user_code):
         parser = Parser(Lexer(user_code))
         ast = parser.get_ast_from_code()
+        self.global_memory = {}
         return self.generic_visit(ast)
         
     def generic_visit(self, ast):
@@ -23,7 +24,9 @@ class Interpreter():
     def visit_Root(self, root):
         output_of_children = []
         for child in root.get_children():
-            output_of_children.append(str(self.generic_visit(child)))
+            visit_value = self.generic_visit(child)
+            if not visit_value == None:
+                output_of_children.append(str(visit_value))
         return output_of_children
     
     def visit_ArithmeticOperator(self, arithmatic_op):
@@ -34,6 +37,18 @@ class Interpreter():
             curr_sum = self.perform_numeric_operation(curr_sum, child_value, operator)
         return curr_sum
     
+    def visit_VariableDeclaration(self, var_decl):
+        var_name = var_decl.get_var_name()
+        var_value = self.generic_visit(var_decl.get_var_value())
+        self.global_memory[var_name] = var_value
+        return None
+
+    def visit_SingleVariable(self, var):
+        var_name = var.get_var_name()
+        if not var_name in self.global_memory.keys():
+            raise RuntimeError('Variable {} has not been defined'.format(var_name))
+        return self.global_memory[var_name]
+
     def perform_numeric_operation(self, curr_sum, addend, operator):
         if curr_sum == None:
             return addend
@@ -45,7 +60,7 @@ class Interpreter():
             return curr_sum * addend
         elif operator == '/':
             if addend == 0:
-                raise RuntimeError('Runtime Exception: Divide by zero')
+                raise RuntimeError('Cannot divide by zero')
             # Check type of value - needed because python division results in float value no matter inputs
             elif isinstance(addend, int):
                 return int(curr_sum / addend)

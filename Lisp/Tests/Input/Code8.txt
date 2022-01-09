@@ -1,0 +1,6 @@
+(define xx_x 12)
+(define x 12312)
+(* xx_x 90 x (/ 12 2))
+(define y (+ xx_x x (* 2 7 (- 12 (+ 12 123) 921) x)))
+y
+(+ xx_x x y)

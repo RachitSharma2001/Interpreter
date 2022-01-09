@@ -1,0 +1,4 @@
+(define some_variable 12)
+(define V_x_something (* 1 (- 32123 1 123) (/ 12 2)))
+V_x_something
+(+ V_x_something (- 12 45 (* 798 (- 123 12 123) some_variable)))

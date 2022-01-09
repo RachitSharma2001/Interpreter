@@ -1,0 +1,2 @@
+(define some_variable 12)
+(+ some_variable (* some_variable 2))

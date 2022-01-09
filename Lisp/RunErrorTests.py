@@ -1,6 +1,6 @@
 import os
 import pytest
-from Error import ParserError
+from Error import ParserError, RuntimeError
 from Interpreter import Interpreter
 
 def get_file_content_as_one(file_dir, file):
@@ -20,6 +20,14 @@ def does_interpreter_raise_exception(code_with_error, type_of_error, interpreter
     if type_of_error == 'PE':
         try:
             with pytest.raises(ParserError):
+                interpreter.interpret(code_with_error)
+        except:
+            return False
+        else:
+            return True
+    elif type_of_error == 'RE':
+        try:
+            with pytest.raises(RuntimeError):
                 interpreter.interpret(code_with_error)
         except:
             return False
