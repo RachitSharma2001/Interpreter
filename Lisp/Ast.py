@@ -43,6 +43,10 @@ class VariableDeclaration(Ast):
     def get_var_value(self):
         return self.var_value
 
+    # Function right now returns None - in more advanced versions, we will save type of variables
+    def get_var_type(self):
+        return None
+
     def __repr__(self):
         printable_repr = 'Variable_Declaration({}, {}), '.format(self.var_name, self.var_value)
         return printable_repr

@@ -1,6 +1,7 @@
+from Token import *
 from Lexer import Lexer
 from Parser import Parser
-from Token import *
+from SemanticAnalyzer import SemanticAnalyzer
 from Error import RuntimeError
 
 class Interpreter():
@@ -10,6 +11,8 @@ class Interpreter():
     def interpret(self, user_code):
         parser = Parser(Lexer(user_code))
         ast = parser.get_ast_from_code()
+        semantic_analyzer = SemanticAnalyzer()
+        semantic_analyzer.check_logic_of_ast(ast)
         self.global_memory = {}
         return self.generic_visit(ast)
         
@@ -45,8 +48,6 @@ class Interpreter():
 
     def visit_SingleVariable(self, var):
         var_name = var.get_var_name()
-        if not var_name in self.global_memory.keys():
-            raise RuntimeError('Variable {} has not been defined'.format(var_name))
         return self.global_memory[var_name]
 
     def perform_numeric_operation(self, curr_sum, addend, operator):

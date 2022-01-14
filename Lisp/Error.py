@@ -1,3 +1,6 @@
+from distutils.log import error
+
+
 class Error(Exception):
     def __init__(self, message):
         self.message = message 
@@ -10,6 +13,10 @@ class LexerError(Error):
         super().__init__(error_msg)
 
 class ParserError(Error):
+    def __init__(self, error_msg):
+        super().__init__(error_msg)
+
+class SemanticError(Error):
     def __init__(self, error_msg):
         super().__init__(error_msg)
 
