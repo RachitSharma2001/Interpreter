@@ -61,9 +61,9 @@ class SemanticAnalyzer():
         var_name = var_decl.get_var_name()
         var_type = var_decl.get_var_type()
         var_value = var_decl.get_var_value()
+        self.generic_visit(var_value)
         if self.symbol_table.contains_var(var_name):
             raise SemanticError('"{}" has already been defined'.format(var_name))
-        self.generic_visit(var_value)
         self.symbol_table.add_var_symbol(VarSymbol(var_name, var_type))
 
     def visit_SingleVariable(self, var):
