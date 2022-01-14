@@ -1,0 +1,2 @@
+(define variable 5)
+(define variable 123.123)

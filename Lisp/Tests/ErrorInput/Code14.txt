@@ -1,0 +1,6 @@
+(define something 123123)
+(+ 12 12 3123 123 13 12312 31)
+(* something 123123 123123)
+(/ something 1)
+(/ (* 123 1))
+(define something 1)
