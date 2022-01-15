@@ -3,6 +3,7 @@ class Ast(object):
 
 class Root(Ast):
     def __init__(self, group_of_children):
+        super().__init__()
         self.group_of_children = group_of_children
     
     def get_children(self):
@@ -16,6 +17,7 @@ class Root(Ast):
 
 class ArithmeticOperator(Ast):
     def __init__(self, operator, group_of_children):
+        super().__init__()
         self.operator = operator
         self.group_of_children = group_of_children
     
@@ -32,8 +34,24 @@ class ArithmeticOperator(Ast):
         printable_repr += self.operator + ", "
         return printable_repr
 
+class ProcedureDeclaration(Ast):
+    def __init__(self, proc_name, proc_args, body, inner_procedures=None):
+        super().__init__()
+        self.proc_name = proc_name
+        self.proc_args = proc_args
+        self.body = body
+        self.inner_procedures = inner_procedures
+
+class ProcedureCall(Ast):
+    def __init__(self, proc_args, referenced_proc_body):
+        super().__init__()
+        self.proc_args = proc_args
+        self.referenced_proc_body = referenced_proc_body
+
+
 class VariableDeclaration(Ast):
     def __init__(self, var_name, var_value):
+        super().__init__()
         self.var_name = var_name
         self.var_value = var_value
     
@@ -53,6 +71,7 @@ class VariableDeclaration(Ast):
 
 class SingleVariable(Ast):
     def __init__(self, var_name):
+        super().__init__()
         self.var_name = var_name
     
     def get_var_name(self):
@@ -64,6 +83,7 @@ class SingleVariable(Ast):
 
 class UnaryOperator(Ast):
     def __init__(self, operator, child):
+        super().__init__()
         self.operator = operator
         self.child = child 
     
@@ -79,6 +99,7 @@ class UnaryOperator(Ast):
 
 class NumericConstant(Ast):
     def __init__(self, type, value):
+        super().__init__()
         self.type = type
         self.value = value
     

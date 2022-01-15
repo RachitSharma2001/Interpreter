@@ -6,11 +6,14 @@ from Error import ParserError
     Current Grammar: 
     Statement_list: (statement)+
     Statement: parenth | single_expr
-    parenth: LPAREN (var_decl | op_expr) RPAREN
+    parenth: LPAREN (var_decl | op_expr | proc_decl | proc_call) RPAREN
+    proc_decl: DEFINE LPAREN ID ID(ID)* RPAREN (LPAREN proc_decl RPAREN)* LPAREN (op_expr | proc_call) RPAREN
+    proc_call: ID (num_expr)+
     var_decl: DEFINE ID num_expr
     num_expr: single_expr | LPAREN op_expr RPAREN
     op_expr: (PLUS | MINUS | MUL | DIV) (num_expr)+
     single_expr: (PLUS | MINUS | empty) (INT | REAL | ID)
+
 '''
 
 class Parser(object):
@@ -54,6 +57,32 @@ class Parser(object):
             return SingleVariable(self.process_token_of_type(ID))
         else:
             raise ParserError('Unexpected Token type {}'.format(curr_token_type))
+
+    # DEFINE LPAREN ID ID(ID)* RPAREN (LPAREN proc_decl RPAREN)* LPAREN (op_expr | proc_call) RPAREN
+    def process_proc_declaration(self):
+        self.process_token_of_type(DEFINE)
+        proc_name, proc_args = self.get_formal_parameters()
+        self.process_token_of_type(LPAREN)
+        if self.curr_token.is_type(ID):
+            body = self.process_proc_call()
+        else:
+            body = self.process_arith_op_expr()
+        return ProcedureDeclaration(proc_name, proc_args, body)
+
+    def get_formal_parameters(self):
+        name = self.process_token_of_type(ID)
+        args = [self.process_token_of_type(ID)]
+        while self.curr_token != None and self.curr_token.is_type(ID):
+            args.append(self.process_token_of_type(ID))
+        return name, args
+    
+    # proc_call: ID (num_expr)+
+    def process_proc_call(self):
+        proc_name = self.process_token_of_type(ID)
+        args = []
+        while self.curr_token != None and self.curr_token.get_type() in (INT_CONST, REAL_CONST, ID):
+            args.append(self.process_token_of_type(self.curr_token.get_type()))
+        return ProcedureCall(proc_name, args)
 
     def process_variable_decl_expr(self):
         self.process_token_of_type(DEFINE)
