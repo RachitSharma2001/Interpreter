@@ -1,0 +1,1 @@
+(define (add x y z d) (+ (* a d) (+ y z d) 4)) (add 3 1 5.2 213.1)

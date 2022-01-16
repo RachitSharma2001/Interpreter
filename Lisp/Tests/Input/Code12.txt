@@ -1,0 +1,2 @@
+(define (square x) (* x x))
+(define (triangle a b c d e f g h) (+ (square a) (- (square b) c d e f g) 123))
