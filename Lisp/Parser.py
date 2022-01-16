@@ -38,12 +38,60 @@ class Parser(object):
     def process_parenthesis_expr(self):
         self.process_token_of_type(LPAREN)
         if self.curr_token.is_type(DEFINE):
-            paren_expr = self.process_variable_decl_expr()
+            paren_expr = self.process_define_expr()
+        elif self.curr_token.is_type(ID):
+            paren_expr = self.process_proc_call()
         else:
             paren_expr = self.process_arith_op_expr()
         self.process_token_of_type(RPAREN)
         return paren_expr
+
+    def process_define_expr(self):
+        self.process_token_of_type(DEFINE)
+        if self.curr_token.is_type(ID):
+            return self.process_variable_decl_expr()
+        else:
+            return self.process_proc_declaration()
     
+    # DEFINE LPAREN ID ID(ID)* RPAREN (LPAREN proc_decl RPAREN)* LPAREN (op_expr | proc_call) RPAREN
+    def process_proc_declaration(self):
+        self.process_token_of_type(LPAREN)
+        proc_name, proc_args = self.get_formal_parameters()
+        self.process_token_of_type(RPAREN)
+        self.process_token_of_type(LPAREN)
+        if self.curr_token.is_type(ID):
+            proc_body = self.process_proc_call()
+        else:
+            proc_body = self.process_arith_op_expr()
+        self.process_token_of_type(RPAREN)
+        return ProcedureDeclaration(proc_name, proc_args, proc_body)
+
+    def get_formal_parameters(self):
+        name = self.process_token_of_type(ID)
+        args = [self.process_token_of_type(ID)]
+        while self.curr_token != None and self.curr_token.is_type(ID):
+            args.append(self.process_token_of_type(ID))
+        return name, args
+    
+    # proc_call: ID (num_expr)+
+    def process_proc_call(self):
+        proc_name = self.process_token_of_type(ID)
+        args = [] 
+        while not self.curr_token.is_type(RPAREN):
+            args.append(self.process_arith_expr_args())
+        return ProcedureCall(proc_name, args)
+
+    def process_variable_decl_expr(self):
+        var_name = self.process_token_of_type(ID) 
+        var_value = self.process_arith_expr_args()
+        return VariableDeclaration(var_name, var_value)
+
+    def process_arith_expr_args(self):
+        if self.curr_token.is_type(LPAREN):
+            return self.process_arith_paren_expr()
+        else:
+            return self.get_single_value()
+
     def get_single_value(self):
         curr_token_type = self.curr_token.get_type()
         if curr_token_type in (PLUS, MINUS):
@@ -58,53 +106,21 @@ class Parser(object):
         else:
             raise ParserError('Unexpected Token type {}'.format(curr_token_type))
 
-    # DEFINE LPAREN ID ID(ID)* RPAREN (LPAREN proc_decl RPAREN)* LPAREN (op_expr | proc_call) RPAREN
-    def process_proc_declaration(self):
-        self.process_token_of_type(DEFINE)
-        proc_name, proc_args = self.get_formal_parameters()
+    def process_arith_paren_expr(self):
         self.process_token_of_type(LPAREN)
         if self.curr_token.is_type(ID):
-            body = self.process_proc_call()
+            parenth_expr = self.process_proc_call()
         else:
-            body = self.process_arith_op_expr()
-        return ProcedureDeclaration(proc_name, proc_args, body)
-
-    def get_formal_parameters(self):
-        name = self.process_token_of_type(ID)
-        args = [self.process_token_of_type(ID)]
-        while self.curr_token != None and self.curr_token.is_type(ID):
-            args.append(self.process_token_of_type(ID))
-        return name, args
-    
-    # proc_call: ID (num_expr)+
-    def process_proc_call(self):
-        proc_name = self.process_token_of_type(ID)
-        args = []
-        while self.curr_token != None and self.curr_token.get_type() in (INT_CONST, REAL_CONST, ID):
-            args.append(self.process_token_of_type(self.curr_token.get_type()))
-        return ProcedureCall(proc_name, args)
-
-    def process_variable_decl_expr(self):
-        self.process_token_of_type(DEFINE)
-        var_name = self.process_token_of_type(ID) 
-        var_value = self.process_math_expr()
-        return VariableDeclaration(var_name, var_value)
-
-    def process_math_expr(self):
-        if self.curr_token.is_type(LPAREN):
-            self.process_token_of_type(LPAREN)
-            arith_op_expr = self.process_arith_op_expr()
-            self.process_token_of_type(RPAREN)
-            return arith_op_expr
-        else:
-            return self.get_single_value()
+            parenth_expr = self.process_arith_op_expr()
+        self.process_token_of_type(RPAREN)
+        return parenth_expr
 
     def process_arith_op_expr(self):
         if self.curr_token != None and self.curr_token.get_type() in (PLUS,MINUS,MUL,DIV):
             operator = self.process_token_of_type(self.curr_token.get_type())
-            group_of_children = [self.process_math_expr()]
+            group_of_children = [self.process_arith_expr_args()]
             while not (self.curr_token == None or self.curr_token.is_type(RPAREN)):
-                group_of_children.append(self.process_math_expr())
+                group_of_children.append(self.process_arith_expr_args())
             return ArithmeticOperator(operator, group_of_children)
         else:
             raise ParserError('Expected Binary Operator, instead got {}'.format(self.curr_token))

@@ -40,6 +40,12 @@ class Interpreter():
             curr_sum = self.perform_numeric_operation(curr_sum, child_value, operator)
         return curr_sum
     
+    def visit_ProcedureDeclaration(self, proc_decl):
+        return 
+
+    def visit_ProcedureCall(self, proc_call):
+        return
+    
     def visit_VariableDeclaration(self, var_decl):
         var_name = var_decl.get_var_name()
         var_value = self.generic_visit(var_decl.get_var_value())

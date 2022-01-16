@@ -57,6 +57,12 @@ class SemanticAnalyzer():
         for child in arithmatic_op.get_children():
             self.generic_visit(child)
     
+    def visit_ProcedureDeclaration(self, proc_decl):
+        return 
+    
+    def visit_ProcedureCall(self, proc_call):
+        return
+
     def visit_VariableDeclaration(self, var_decl):
         var_name = var_decl.get_var_name()
         var_type = var_decl.get_var_type()

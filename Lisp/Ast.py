@@ -1,3 +1,6 @@
+from string import printable
+
+
 class Ast(object):
     pass
 
@@ -42,12 +45,20 @@ class ProcedureDeclaration(Ast):
         self.body = body
         self.inner_procedures = inner_procedures
 
-class ProcedureCall(Ast):
-    def __init__(self, proc_args, referenced_proc_body):
-        super().__init__()
-        self.proc_args = proc_args
-        self.referenced_proc_body = referenced_proc_body
+    def __repr__(self):
+        printable_repr = 'name: {} args: {} '.format(self.proc_name, self.proc_args)
+        printable_repr += self.body.__repr__()
+        return printable_repr
 
+
+class ProcedureCall(Ast):
+    def __init__(self, proc_name, proc_args):
+        super().__init__()
+        self.proc_name = proc_name
+        self.proc_args = proc_args
+    
+    def __repr__(self):
+        return 'Called Procedure name: {} Procedure Args: {}'.format(self.proc_name, self.proc_args)
 
 class VariableDeclaration(Ast):
     def __init__(self, var_name, var_value):
