@@ -59,6 +59,15 @@ class Parser(object):
         proc_body = self.get_proc_body()
         return ProcedureDeclaration(proc_name, proc_args, proc_body)
 
+    def get_formal_parameters(self):
+        self.process_token_of_type(LPAREN)
+        proc_name = self.process_token_of_type(ID)
+        proc_args = [self.process_token_of_type(ID)]
+        while self.curr_token != None and self.curr_token.is_type(ID):
+            proc_args.append(self.process_token_of_type(ID))
+        self.process_token_of_type(RPAREN)
+        return proc_name, proc_args
+    
     def get_proc_body(self):
         self.process_token_of_type(LPAREN)
         if self.curr_token.is_type(ID):
@@ -67,23 +76,14 @@ class Parser(object):
             proc_body = self.process_arith_op_expr()
         self.process_token_of_type(RPAREN)
         return proc_body
-
-    def get_formal_parameters(self):
-        self.process_token_of_type(LPAREN)
-        name = self.process_token_of_type(ID)
-        args = [self.process_token_of_type(ID)]
-        while self.curr_token != None and self.curr_token.is_type(ID):
-            args.append(self.process_token_of_type(ID))
-        self.process_token_of_type(RPAREN)
-        return name, args
     
     # proc_call: ID (num_expr)+
     def process_proc_call(self):
         proc_name = self.process_token_of_type(ID)
-        args = [] 
+        proc_args = [] 
         while not self.curr_token.is_type(RPAREN):
-            args.append(self.process_arith_expr_args())
-        return ProcedureCall(proc_name, args)
+            proc_args.append(self.process_arith_expr_args())
+        return ProcedureCall(proc_name, proc_args)
 
     def process_variable_decl_expr(self):
         var_name = self.process_token_of_type(ID) 
@@ -122,18 +122,18 @@ class Parser(object):
     def process_arith_op_expr(self):
         if self.curr_token != None and self.curr_token.get_type() in (PLUS,MINUS,MUL,DIV):
             operator = self.process_token_of_type(self.curr_token.get_type())
-            group_of_children = [self.process_arith_expr_args()]
-            while not (self.curr_token == None or self.curr_token.is_type(RPAREN)):
-                group_of_children.append(self.process_arith_expr_args())
-            return ArithmeticOperator(operator, group_of_children)
+            return ArithmeticOperator(operator, self.get_arith_expr_params())
         else:
             raise ParserError('Expected Binary Operator, instead got {}'.format(self.curr_token))
 
+    def get_arith_expr_params(self):
+        group_of_params = [self.process_arith_expr_args()]
+        while not (self.curr_token == None or self.curr_token.is_type(RPAREN)):
+            group_of_params.append(self.process_arith_expr_args())
+        return group_of_params
+
     def process_token_of_type(self, type):
-        if self.curr_token == None:
-            raise ParserError('Expected {}, instead got None'.format(type))
-        elif not self.curr_token.is_type(type):
-            raise ParserError('Expected {}, instead got {}'.format(type, self.curr_token.get_type()))
+        self.check_error_in_token(type)
         type_adapted_content = self.curr_token.get_content()
         if type == INT_CONST:
             type_adapted_content = int(type_adapted_content)
@@ -143,3 +143,9 @@ class Parser(object):
             type_adapted_content = str(type_adapted_content)
         self.curr_token = self.lexer.get_next_token()
         return type_adapted_content
+
+    def check_error_in_token(self, type):
+        if self.curr_token == None:
+            raise ParserError('Expected {}, instead got None'.format(type))
+        elif not self.curr_token.is_type(type):
+            raise ParserError('Expected {}, instead got {}'.format(type, self.curr_token.get_type()))
