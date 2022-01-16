@@ -55,22 +55,26 @@ class Parser(object):
     
     # DEFINE LPAREN ID ID(ID)* RPAREN (LPAREN proc_decl RPAREN)* LPAREN (op_expr | proc_call) RPAREN
     def process_proc_declaration(self):
-        self.process_token_of_type(LPAREN)
         proc_name, proc_args = self.get_formal_parameters()
-        self.process_token_of_type(RPAREN)
+        proc_body = self.get_proc_body()
+        return ProcedureDeclaration(proc_name, proc_args, proc_body)
+
+    def get_proc_body(self):
         self.process_token_of_type(LPAREN)
         if self.curr_token.is_type(ID):
             proc_body = self.process_proc_call()
         else:
             proc_body = self.process_arith_op_expr()
         self.process_token_of_type(RPAREN)
-        return ProcedureDeclaration(proc_name, proc_args, proc_body)
+        return proc_body
 
     def get_formal_parameters(self):
+        self.process_token_of_type(LPAREN)
         name = self.process_token_of_type(ID)
         args = [self.process_token_of_type(ID)]
         while self.curr_token != None and self.curr_token.is_type(ID):
             args.append(self.process_token_of_type(ID))
+        self.process_token_of_type(RPAREN)
         return name, args
     
     # proc_call: ID (num_expr)+
