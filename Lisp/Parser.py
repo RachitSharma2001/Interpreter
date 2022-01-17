@@ -62,12 +62,16 @@ class Parser(object):
     def get_formal_parameters(self):
         self.process_token_of_type(LPAREN)
         proc_name = self.process_token_of_type(ID)
-        proc_args = [self.process_token_of_type(ID)]
-        while self.curr_token != None and self.curr_token.is_type(ID):
-            proc_args.append(self.process_token_of_type(ID))
+        proc_args = self.get_proc_args()
         self.process_token_of_type(RPAREN)
         return proc_name, proc_args
     
+    def get_proc_args(self):
+        proc_args = [self.process_token_of_type(ID)]
+        while self.curr_token != None and self.curr_token.is_type(ID):
+            proc_args.append(self.process_token_of_type(ID))
+        return proc_args
+
     def get_proc_body(self):
         self.process_token_of_type(LPAREN)
         if self.curr_token.is_type(ID):
@@ -77,7 +81,6 @@ class Parser(object):
         self.process_token_of_type(RPAREN)
         return proc_body
     
-    # proc_call: ID (num_expr)+
     def process_proc_call(self):
         proc_name = self.process_token_of_type(ID)
         proc_args = [] 
