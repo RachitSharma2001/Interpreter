@@ -134,15 +134,18 @@ class Parser(object):
 
     def process_token_of_type(self, type):
         self.check_error_in_token(type)
-        type_adapted_content = self.curr_token.get_content()
-        if type == INT_CONST:
-            type_adapted_content = int(type_adapted_content)
-        elif type == REAL_CONST:
-            type_adapted_content = float(type_adapted_content)
-        elif type == ID:
-            type_adapted_content = str(type_adapted_content)
+        type_adapted_content = self.adapt_content_to_type(self.curr_token.get_content(), type)
         self.curr_token = self.lexer.get_next_token()
         return type_adapted_content
+
+    def adapt_content_to_type(self, content, type):
+        if type == INT_CONST:
+            return int(content)
+        elif type == REAL_CONST:
+            return float(content)
+        elif type == ID:
+            return str(content)
+        return content
 
     def check_error_in_token(self, type):
         if self.curr_token == None:
