@@ -4,14 +4,20 @@ from Token import *
 from Error import SemanticError
 
 class SymbolTable(object):
-    def __init__(self) -> None:
+    def __init__(self, parent=None):
         self.table = {}
+        self.parent = parent
     
     def add_var_symbol(self, var_symbol):
         self.table[var_symbol.get_name()] = var_symbol.get_type()
 
     def contains_var(self, var_name):
-        return var_name in self.table.keys()
+        if var_name in self.table.keys():
+            return True
+        elif self.parent != None:
+            return self.parent.contains_var(var_name)
+        else:
+            return False
 
 class Symbol(object):
     def __init__(self, name, type=None):
@@ -37,7 +43,7 @@ class SemanticAnalyzer():
         pass 
 
     def check_logic_of_ast(self, ast):
-        self.symbol_table = SymbolTable()
+        self.curr_scope = SymbolTable()
         self.generic_visit(ast)
         return
         
@@ -58,8 +64,17 @@ class SemanticAnalyzer():
             self.generic_visit(child)
     
     def visit_ProcedureDeclaration(self, proc_decl):
-        return 
+        prev_scope = self.curr_scope
+        self.curr_scope = SymbolTable(prev_scope)
+        self.add_proc_to_scope(proc_decl)
+        self.generic_visit(proc_decl.get_proc_body())
+        self.curr_scope = prev_scope
     
+    def add_proc_to_scope(self, proc_decl):
+        for arg in proc_decl.get_proc_args():
+            self.curr_scope.add_var_symbol(VarSymbol(arg, None))
+        self.curr_scope.add_var_symbol(VarSymbol(proc_decl.get_proc_name(), None))
+
     def visit_ProcedureCall(self, proc_call):
         return
 
@@ -68,13 +83,13 @@ class SemanticAnalyzer():
         var_type = var_decl.get_var_type()
         var_value = var_decl.get_var_value()
         self.generic_visit(var_value)
-        if self.symbol_table.contains_var(var_name):
+        if self.curr_scope.contains_var(var_name):
             raise SemanticError('"{}" has already been defined'.format(var_name))
-        self.symbol_table.add_var_symbol(VarSymbol(var_name, var_type))
+        self.curr_scope.add_var_symbol(VarSymbol(var_name, var_type))
 
     def visit_SingleVariable(self, var):
         var_name = var.get_var_name()
-        if not self.symbol_table.contains_var(var_name):
+        if not self.curr_scope.contains_var(var_name):
             raise SemanticError('"{}" referenced but not defined'.format(var_name))
 
     def perform_numeric_operation(self, curr_sum, addend, operator):

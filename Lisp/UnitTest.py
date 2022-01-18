@@ -1,22 +1,23 @@
 from Lexer import Lexer 
 from Parser import Parser
+from SemanticAnalyzer import SemanticAnalyzer
 
-def printTest(parser):
-    print(p.get_ast_from_code())
-    print('---------------------')
+print('Test 1')
+parser = Parser(Lexer('(define x 5) (define (square x) (* x x))'))
+sa = SemanticAnalyzer()
+sa.check_logic_of_ast(parser.get_ast_from_code())
 
-single_arg_code = '(define (square x) (* x x)) (square 25) (square 4)'
-p = Parser(Lexer(single_arg_code))
-printTest(p)
+print('Test 2')
+parser = Parser(Lexer('(define x 5) (define (square a) (* x x))'))
+sa = SemanticAnalyzer()
+sa.check_logic_of_ast(parser.get_ast_from_code())
 
-multi_arg_code = '(define (add x y z d) (+ (* a d) (+ y z d) 4)) (add 3 1 5.2 213.1)'
-p = Parser(Lexer(multi_arg_code))
-printTest(p)
-
-proc_in_arg_code = '(define (square something somethingelse) (square (triangle somethingelse somethingelse somethingelse somethingelse somethingelse somethingelse)))'
-p = Parser(Lexer(proc_in_arg_code))
-printTest(p)
-
-proc_call_code = '(* (triangle 1 2 3 4 5 6) (square (/ 5 5)) (* 1 2 (+ 1 2 3)) (- 12 3))'
-p = Parser(Lexer(proc_call_code))
-printTest(p)
+'''
+parser = Parser(Lexer('(define x 5) (define (square a) (* a b))'))
+sa = SemanticAnalyzer()
+sa.check_logic_of_ast(parser.get_ast_from_code())
+'''
+print('Test 3')
+parser = Parser(Lexer('(define x 5) (define (f x a) (+ x a)) (define (square b) (* a x))'))
+sa = SemanticAnalyzer()
+sa.check_logic_of_ast(parser.get_ast_from_code())

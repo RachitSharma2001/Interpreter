@@ -45,6 +45,15 @@ class ProcedureDeclaration(Ast):
         self.body = body
         self.inner_procedures = inner_procedures
 
+    def get_proc_args(self):
+        return self.proc_args
+
+    def get_proc_name(self):
+        return self.proc_name
+    
+    def get_proc_body(self):
+        return self.body
+
     def __repr__(self):
         printable_repr = 'name: {} args: {} '.format(self.proc_name, self.proc_args)
         printable_repr += self.body.__repr__()
