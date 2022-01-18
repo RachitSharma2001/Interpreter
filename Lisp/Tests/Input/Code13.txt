@@ -1,5 +1,5 @@
 (define (square x) (* x x))
 (define (triangle a b c d e f) (+ (square a) (- (square b) c d e f) 123))
 (define (line something somethingelse) (square (triangle somethingelse somethingelse somethingelse somethingelse somethingelse somethingelse)))
-(+ (line 1 2 4) (square 3))
+(+ (line 1 2) (square 3))
 (* (triangle 1 2 3 4 5 6) (square (/ 5 5)) (* 1 2 (+ 1 2 3)) (- 12 3))

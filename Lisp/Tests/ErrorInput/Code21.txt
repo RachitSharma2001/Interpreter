@@ -1,0 +1,3 @@
+(define a 10)
+(define (f a) (* 9 a))
+(f a 9)

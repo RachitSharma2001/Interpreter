@@ -1,0 +1,3 @@
+(define (square x) (* x x))
+(define (f one two) (+ (square one) two))
+(f 10 2)

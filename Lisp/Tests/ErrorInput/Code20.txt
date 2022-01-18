@@ -1,0 +1,1 @@
+(define a 10) (define (square x a b) (* x a b)) (square 3 5 a 2)
