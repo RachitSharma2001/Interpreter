@@ -1,0 +1,1 @@
+(define x 5) (define (f x a) (+ x a)) (define (square b) (* a x))
