@@ -8,8 +8,8 @@ class SymbolTable(object):
         self.table = {}
         self.parent = parent
     
-    def add_var_symbol(self, var_symbol):
-        self.table[var_symbol.get_name()] = var_symbol.get_type()
+    def add_symbol(self, symbol):
+        self.table = symbol.add_to_table(self.table)
 
     def contains_var(self, var_name):
         if var_name in self.table.keys():
@@ -24,6 +24,10 @@ class Symbol(object):
         self.name = name
         self.type = type
     
+    def add_to_table(self, given_table):
+        given_table[self.name] = self.type
+        return given_table
+
     def get_name(self):
         return self.name 
     
@@ -33,6 +37,18 @@ class Symbol(object):
 class VarSymbol(Symbol):
     def __init__(self, name, type):
         super().__init__(name, type)
+
+class ProcSymbol(Symbol):
+    def __init__(self, name, proc):
+        super().__init__(name)
+        self.proc = proc
+    
+    def add_to_table(self, given_table):
+        given_table[self.proc.get_proc_name()] = self.proc
+        return given_table
+    
+    def get_proc(self):
+        return self.proc
 
 class BuiltInType(Symbol):
     def __init__(self, name):
@@ -72,11 +88,16 @@ class SemanticAnalyzer():
     
     def add_proc_to_scope(self, proc_decl):
         for arg in proc_decl.get_proc_args():
-            self.curr_scope.add_var_symbol(VarSymbol(arg, None))
-        self.curr_scope.add_var_symbol(VarSymbol(proc_decl.get_proc_name(), None))
+            self.curr_scope.add_symbol(VarSymbol(arg, None))
+        self.curr_scope.add_symbol(ProcSymbol(proc_decl.get_proc_name(), proc_decl))
 
     def visit_ProcedureCall(self, proc_call):
-        return
+        pass
+        # Get the called procedure name
+        # check that the procedure actually exists in global scope
+        # Get the number of arguments for that procedure 
+        # Get the number of parameters passed into the procedure call 
+        # If the above two numbers are not equal, throw an error
 
     def visit_VariableDeclaration(self, var_decl):
         var_name = var_decl.get_var_name()
@@ -85,7 +106,7 @@ class SemanticAnalyzer():
         self.generic_visit(var_value)
         if self.curr_scope.contains_var(var_name):
             raise SemanticError('"{}" has already been defined'.format(var_name))
-        self.curr_scope.add_var_symbol(VarSymbol(var_name, var_type))
+        self.curr_scope.add_symbol(VarSymbol(var_name, var_type))
 
     def visit_SingleVariable(self, var):
         var_name = var.get_var_name()
