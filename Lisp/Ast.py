@@ -66,6 +66,12 @@ class ProcedureCall(Ast):
         self.proc_name = proc_name
         self.proc_args = proc_args
     
+    def get_proc_name(self):
+        return self.proc_name
+
+    def get_passed_args(self):
+        return self.proc_args
+    
     def __repr__(self):
         return 'Called Procedure name: {} Procedure Args: {}'.format(self.proc_name, self.proc_args)
 

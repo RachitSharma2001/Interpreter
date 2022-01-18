@@ -11,13 +11,21 @@ class SymbolTable(object):
     def add_symbol(self, symbol):
         self.table = symbol.add_to_table(self.table)
 
-    def contains_var(self, var_name):
-        if var_name in self.table.keys():
+    def contains_symbol(self, symb_name):
+        if symb_name in self.table.keys():
             return True
         elif self.parent != None:
-            return self.parent.contains_var(var_name)
+            return self.parent.contains_symbol(symb_name)
         else:
             return False
+
+    def get_symbol(self, symb_name):
+        if symb_name in self.table.keys():
+            return self.table[symb_name]
+        elif self.parent != None:
+            return self.parent.get_symbol(symb_name)
+        else:
+            return None
 
 class Symbol(object):
     def __init__(self, name, type=None):
@@ -44,7 +52,7 @@ class ProcSymbol(Symbol):
         self.proc = proc
     
     def add_to_table(self, given_table):
-        given_table[self.proc.get_proc_name()] = self.proc
+        given_table[self.name] = self.proc
         return given_table
     
     def get_proc(self):
@@ -80,37 +88,38 @@ class SemanticAnalyzer():
             self.generic_visit(child)
     
     def visit_ProcedureDeclaration(self, proc_decl):
+        self.curr_scope.add_symbol(ProcSymbol(proc_decl.get_proc_name(), proc_decl))
         prev_scope = self.curr_scope
         self.curr_scope = SymbolTable(prev_scope)
-        self.add_proc_to_scope(proc_decl)
+        self.add_proc_args_to_scope(proc_decl)
         self.generic_visit(proc_decl.get_proc_body())
         self.curr_scope = prev_scope
     
-    def add_proc_to_scope(self, proc_decl):
+    def add_proc_args_to_scope(self, proc_decl):
         for arg in proc_decl.get_proc_args():
             self.curr_scope.add_symbol(VarSymbol(arg, None))
-        self.curr_scope.add_symbol(ProcSymbol(proc_decl.get_proc_name(), proc_decl))
 
     def visit_ProcedureCall(self, proc_call):
-        pass
-        # Get the called procedure name
-        # check that the procedure actually exists in global scope
-        # Get the number of arguments for that procedure 
-        # Get the number of parameters passed into the procedure call 
-        # If the above two numbers are not equal, throw an error
+        proc_name = proc_call.get_proc_name()
+        if not self.curr_scope.contains_symbol(proc_name):
+            raise SemanticError('Procedure "{}" referenced but never defined'.format(proc_name))
+        num_call_args = len(proc_call.get_passed_args())
+        num_expected_args = len(self.curr_scope.get_symbol(proc_name).get_proc_args())
+        if num_call_args != num_expected_args:
+            raise SemanticError('{} expected {} arguments, but received {}'.format(proc_name, num_expected_args, num_call_args))
 
     def visit_VariableDeclaration(self, var_decl):
         var_name = var_decl.get_var_name()
         var_type = var_decl.get_var_type()
         var_value = var_decl.get_var_value()
         self.generic_visit(var_value)
-        if self.curr_scope.contains_var(var_name):
+        if self.curr_scope.contains_symbol(var_name):
             raise SemanticError('"{}" has already been defined'.format(var_name))
         self.curr_scope.add_symbol(VarSymbol(var_name, var_type))
 
     def visit_SingleVariable(self, var):
         var_name = var.get_var_name()
-        if not self.curr_scope.contains_var(var_name):
+        if not self.curr_scope.contains_symbol(var_name):
             raise SemanticError('"{}" referenced but not defined'.format(var_name))
 
     def perform_numeric_operation(self, curr_sum, addend, operator):
