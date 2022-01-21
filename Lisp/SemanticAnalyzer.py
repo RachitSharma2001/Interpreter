@@ -101,10 +101,14 @@ class SemanticAnalyzer():
 
     def visit_ProcedureCall(self, proc_call):
         proc_name = proc_call.get_proc_name()
+        self.check_proc_name_in_scope(proc_name)
+        self.check_call_args_match_exp_args(proc_name, len(proc_call.get_passed_args()), len(self.curr_scope.get_symbol(proc_name).get_proc_args()))
+
+    def check_proc_name_in_scope(self, proc_name):
         if not self.curr_scope.contains_symbol(proc_name):
             raise SemanticError('Procedure "{}" referenced but never defined'.format(proc_name))
-        num_call_args = len(proc_call.get_passed_args())
-        num_expected_args = len(self.curr_scope.get_symbol(proc_name).get_proc_args())
+
+    def check_call_args_match_exp_args(self, proc_name, num_call_args, num_expected_args):
         if num_call_args != num_expected_args:
             raise SemanticError('{} expected {} arguments, but received {}'.format(proc_name, num_expected_args, num_call_args))
 
