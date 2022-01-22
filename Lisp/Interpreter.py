@@ -59,6 +59,7 @@ class StackFrame(object):
 
 class Interpreter():
     def __init__(self):
+        self.call_stack = CallStack()
         pass 
     
     def interpret(self, user_code):
@@ -66,7 +67,6 @@ class Interpreter():
         ast = parser.get_ast_from_code()
         semantic_analyzer = SemanticAnalyzer()
         semantic_analyzer.check_logic_of_ast(ast)
-        self.call_stack = CallStack()
         return self.generic_visit(ast)
         
     def generic_visit(self, ast):
@@ -96,9 +96,30 @@ class Interpreter():
         curr_sum = None
         for child in arithmatic_op.get_children():
             child_value = self.generic_visit(child)
-            curr_sum = self.perform_numeric_operation(curr_sum, child_value, operator)
+            curr_sum = self.perform_numeric_operation(curr_sum, operator, child_value)
         return curr_sum
     
+    def perform_numeric_operation(self, curr_sum, operator, addend):
+        if curr_sum == None:
+            return addend
+        elif operator == '+':
+            return curr_sum + addend
+        elif operator == '-':
+            return curr_sum - addend
+        elif operator == '*':
+            return curr_sum * addend
+        elif operator == '/':
+            return self.find_division_result(curr_sum, addend)
+
+    def find_division_result(self, curr_sum, addend):
+        if addend == 0:
+            raise RuntimeError('Cannot divide by zero')
+        # Check type of value - needed because python division results in float value no matter inputs
+        elif isinstance(addend, int):
+            return int(curr_sum / addend)
+        else:
+            return curr_sum / addend
+
     def visit_ProcedureDeclaration(self, proc_decl):
         return 
 
@@ -114,24 +135,6 @@ class Interpreter():
     def visit_SingleVariable(self, var):
         var_name = var.get_var_name()
         return self.call_stack.get_from_top_frame(var_name)
-
-    def perform_numeric_operation(self, curr_sum, addend, operator):
-        if curr_sum == None:
-            return addend
-        elif operator == '+':
-            return curr_sum + addend
-        elif operator == '-':
-            return curr_sum - addend
-        elif operator == '*':
-            return curr_sum * addend
-        elif operator == '/':
-            if addend == 0:
-                raise RuntimeError('Cannot divide by zero')
-            # Check type of value - needed because python division results in float value no matter inputs
-            elif isinstance(addend, int):
-                return int(curr_sum / addend)
-            else:
-                return curr_sum / addend
 
     def visit_UnaryOperator(self, unary_op):
         operator = unary_op.get_operator()

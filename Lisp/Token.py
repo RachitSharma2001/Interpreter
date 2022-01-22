@@ -47,12 +47,15 @@ class Token(object):
 
     def is_real(self, stream_of_chars):
         num_of_dots = 0
-        for char in stream_of_chars:
-            if char == '.':
+        for curr_char in stream_of_chars:
+            if curr_char == '.':
                 num_of_dots += 1
-            if not (char.isdigit() or (char == '.' and num_of_dots <= 1)):
+            if not self.is_valid_num_char(curr_char, num_of_dots):
                 return False
         return True
+
+    def is_valid_num_char(self, char, num_of_dots):
+        return char.isdigit() or (char == '.' and num_of_dots <= 1)
 
     def is_type(self, given_type):
         return given_type == self.token_type

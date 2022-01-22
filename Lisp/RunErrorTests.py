@@ -1,6 +1,6 @@
 import os
 import pytest
-from Error import ParserError, RuntimeError, SemanticError
+from Error import ParserError, RuntimeError, SemanticError, LexerError
 from Interpreter import Interpreter
 
 def get_file_content_as_one(file_dir, file):
@@ -23,6 +23,10 @@ def does_interpreter_raise_exception(code_with_error, type_of_error, interpreter
         class_of_error = RuntimeError
     elif type_of_error == 'SE':
         class_of_error = SemanticError
+    elif type_of_error == 'LE':
+        class_of_error = LexerError
+    else:
+        raise Exception('{} not a valid error type'.format(type_of_error))
     try:
         with pytest.raises(class_of_error):
             interpreter.interpret(code_with_error)
