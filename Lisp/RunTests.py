@@ -14,10 +14,11 @@ def get_group_of_lines_from_file(file_dir, file):
     file_results = []
     with open(file_dir+file) as opened_file:
         for line in opened_file.readlines():
-            if line[-1] == '\n':
-                line = line[0:len(line)-1]
-            file_results.append(line)
+            file_results.append(remove_newline_from_string(line))
     return file_results
+
+def remove_newline_from_string(str):
+    return str[0:len(str)-1] if str[-1] == '\n' else str
 
 '''
     group, compare_group - list of items or a string 
@@ -33,6 +34,13 @@ def is_interpreter_output_correct(expected_output, interpreter_output):
     else:
         return True
 
+def get_output_from_interpreter(interpreter, input_code):
+    try:
+        output = interpreter.interpret(input_code)
+        return output
+    except:
+        return None
+
 input_file_dir = 'Tests/Input/'
 output_file_dir = 'Tests/Output/'
 input_file_group = os.listdir(input_file_dir)
@@ -44,14 +52,10 @@ if has_unequal_len(input_file_group, output_file_group):
 
 for file_index in range(len(input_file_group)):
     input_code = get_file_content_as_one(input_file_dir, input_file_group[file_index])
-    try:
-        output_from_interpreter = interpreter.interpret(input_code)
-    except:
-        output_from_interpreter = []
     expected_output = get_group_of_lines_from_file(output_file_dir, output_file_group[file_index])
+    output_from_interpreter = get_output_from_interpreter(interpreter, input_code)
     if not is_interpreter_output_correct(expected_output, output_from_interpreter):
         print('Test {} FAILED!'.format(file_index+1))
-        #quit()
     else:
         print('Test {} passed'.format(file_index+1))
 
