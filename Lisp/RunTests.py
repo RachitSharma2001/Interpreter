@@ -20,9 +20,6 @@ def get_group_of_lines_from_file(file_dir, file):
 def remove_newline_from_string(str):
     return str[0:len(str)-1] if str[-1] == '\n' else str
 
-'''
-    group, compare_group - list of items or a string 
-'''
 def has_unequal_len(group, compare_group):
     return len(group) != len(compare_group)
 
