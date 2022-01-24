@@ -44,7 +44,10 @@ if has_unequal_len(input_file_group, output_file_group):
 
 for file_index in range(len(input_file_group)):
     input_code = get_file_content_as_one(input_file_dir, input_file_group[file_index])
-    output_from_interpreter = interpreter.interpret(input_code)
+    try:
+        output_from_interpreter = interpreter.interpret(input_code)
+    except:
+        output_from_interpreter = []
     expected_output = get_group_of_lines_from_file(output_file_dir, output_file_group[file_index])
     if not is_interpreter_output_correct(expected_output, output_from_interpreter):
         print('Test {} FAILED!'.format(file_index+1))
