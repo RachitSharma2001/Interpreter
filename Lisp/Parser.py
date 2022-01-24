@@ -51,26 +51,30 @@ class Parser(object):
         if self.curr_token.is_type(ID):
             return self.process_variable_decl_expr()
         else:
-            return self.process_proc_declaration()
+            return self.process_proc_decl_expr()
     
-    # DEFINE LPAREN ID ID(ID)* RPAREN (LPAREN proc_decl RPAREN)* LPAREN (op_expr | proc_call) RPAREN
-    def process_proc_declaration(self):
-        proc_name, proc_args = self.get_formal_parameters()
-        proc_body = self.get_proc_body()
-        return ProcedureDeclaration(proc_name, proc_args, proc_body)
+    def process_variable_decl_expr(self):
+        var_name = self.process_token_of_type(ID) 
+        var_value = self.process_arith_expr_args()
+        return VariableDeclaration(var_name, var_value)
 
-    def get_formal_parameters(self):
+    def process_proc_decl_expr(self):
+        proc_name, proc_params = self.process_formal_variables()
+        proc_body = self.get_proc_body()
+        return ProcedureDeclaration(proc_name, proc_params, proc_body)
+
+    def process_formal_variables(self):
         self.process_token_of_type(LPAREN)
         proc_name = self.process_token_of_type(ID)
-        proc_args = self.get_proc_args()
+        proc_params = self.get_proc_parameters()
         self.process_token_of_type(RPAREN)
-        return proc_name, proc_args
+        return proc_name, proc_params
     
-    def get_proc_args(self):
-        proc_args = [self.process_token_of_type(ID)]
-        while self.curr_token != None and self.curr_token.is_type(ID):
-            proc_args.append(self.process_token_of_type(ID))
-        return proc_args
+    def get_proc_parameters(self):
+        proc_params = []
+        while self.still_reading_from_proc():
+            proc_params.append(self.process_token_of_type(ID))
+        return proc_params
 
     def get_proc_body(self):
         self.process_token_of_type(LPAREN)
@@ -83,15 +87,17 @@ class Parser(object):
     
     def process_proc_call(self):
         proc_name = self.process_token_of_type(ID)
-        proc_args = [] 
-        while not self.curr_token.is_type(RPAREN):
-            proc_args.append(self.process_arith_expr_args())
+        proc_args = self.get_proc_call_args()
         return ProcedureCall(proc_name, proc_args)
+    
+    def get_proc_call_args(self):
+        proc_args = [] 
+        while self.still_reading_from_proc():
+            proc_args.append(self.process_arith_expr_args())
+        return proc_args
 
-    def process_variable_decl_expr(self):
-        var_name = self.process_token_of_type(ID) 
-        var_value = self.process_arith_expr_args()
-        return VariableDeclaration(var_name, var_value)
+    def still_reading_from_proc(self):
+        return not (self.curr_token.is_type(RPAREN) or self.curr_token == None)
 
     def process_arith_expr_args(self):
         if self.curr_token.is_type(LPAREN):
