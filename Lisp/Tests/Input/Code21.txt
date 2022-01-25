@@ -1,0 +1,1 @@
+(define v 4) (define (f y) (* v y)) (define (f2 v) (* (f v) v)) (f 8) (f2 3) (f2 10)
