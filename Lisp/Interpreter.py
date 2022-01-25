@@ -7,7 +7,6 @@ from Error import RuntimeError
 
 class CallStack(object):
     def __init__(self):
-        self.frame_name = ""
         self.top = None
     
     def push(self, given_frame):
@@ -15,17 +14,33 @@ class CallStack(object):
     
     def pop(self):
         if self.top == None:
-            return
-            #raise Exception('Pop called on call Stack with no stack frames')
-        self.top = self.top.get_below_frame()
+            raise Exception('Pop called on call Stack with no stack frames')
+        self.top = self.top.get_frame_below()
+
+    def peek(self):
+        return self.top
 
     def add_to_top_frame(self, key, value):
         if self.top == None:
             raise Exception('Call Stack is empty')
         self.top.add(key, value)
 
-    def get_from_top_frame(self, key):
-        return self.top.get(key)
+    def get_from_valid_scope(self, key):
+        if self.top == None:
+            raise Exception('get_from_valid_scope() called on CallStack with no top frame')
+        top_scope_res = self.top.get(key)
+        if top_scope_res == None:
+            return self._get_from_global_scope(key)
+        return top_scope_res
+    
+    def _get_from_global_scope(self, key):
+        return self._get_global_scope().get(key)
+    
+    def _get_global_scope(self):
+        curr_scope = self.top
+        while curr_scope.get_frame_below() != None:
+            curr_scope = curr_scope.get_frame_below()
+        return curr_scope
 
     def __repr__(self):
         stack_str = '------- Call Stack --------\n'
@@ -37,19 +52,21 @@ class CallStack(object):
         return stack_str
 
 class StackFrame(object):
-    def __init__(self, frame_name, below_frame=None):
+    def __init__(self, frame_name, frame_below):
         self.name = frame_name
-        self.below_frame = below_frame
+        self.frame_below = frame_below
         self.memory = {}
     
     def add(self, key, value):
         self.memory[key] = value
     
     def get(self, key):
-        return self.memory[key]
+        if key in self.memory.keys():
+            return self.memory[key]
+        return None
 
-    def get_below_frame(self):
-        return self.below_frame
+    def get_frame_below(self):
+        return self.frame_below
     
     def __repr__(self):
         frame_str = '--- {} ---\n'.format(self.name)
@@ -61,7 +78,6 @@ class StackFrame(object):
 class Interpreter():
     def __init__(self):
         self.call_stack = CallStack()
-        pass 
     
     def interpret(self, user_code):
         parser = Parser(Lexer(user_code))
@@ -79,7 +95,7 @@ class Interpreter():
         raise Exception('Given AST class {} does not exist'.format(type(ast).__name__))
     
     def visit_Root(self, root):
-        self.call_stack.push(StackFrame('Root'))
+        self.call_stack.push(StackFrame('Root', None))
         output_of_children = self.get_root_children_output(root.get_children())
         self.call_stack.pop()
         return output_of_children
@@ -126,7 +142,7 @@ class Interpreter():
         return 
 
     def visit_ProcedureCall(self, proc_call):
-        proc_decl_obj = self.call_stack.get_from_top_frame(proc_call.get_proc_name())
+        proc_decl_obj = self.call_stack.get_from_valid_scope(proc_call.get_proc_name())
         proc_frame = self.get_new_procedure_frame(proc_call, proc_decl_obj.get_proc_args())
         self.call_stack.push(proc_frame)
         proc_result = self.generic_visit(proc_decl_obj.get_proc_body())
@@ -136,7 +152,7 @@ class Interpreter():
     def get_new_procedure_frame(self, proc_call_obj, expected_proc_args):
         proc_name = proc_call_obj.get_proc_name()
         given_proc_args = proc_call_obj.get_passed_args()
-        proc_frame = StackFrame(proc_name)
+        proc_frame = StackFrame(proc_name, self.call_stack.peek())
         for args_index in range(len(expected_proc_args)):
             exp_arg_name = expected_proc_args[args_index]
             given_arg_value = self.generic_visit(given_proc_args[args_index])
@@ -151,7 +167,7 @@ class Interpreter():
 
     def visit_SingleVariable(self, var):
         var_name = var.get_var_name()
-        return self.call_stack.get_from_top_frame(var_name)
+        return self.call_stack.get_from_valid_scope(var_name)
 
     def visit_UnaryOperator(self, unary_op):
         operator = unary_op.get_operator()
