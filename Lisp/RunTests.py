@@ -53,6 +53,7 @@ for file_index in range(len(input_file_group)):
     output_from_interpreter = get_output_from_interpreter(interpreter, input_code)
     if not is_interpreter_output_correct(expected_output, output_from_interpreter):
         print('Test {} FAILED!'.format(file_index+1))
+        quit()
     else:
         print('Test {} passed'.format(file_index+1))
 
