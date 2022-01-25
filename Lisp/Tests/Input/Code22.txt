@@ -1,0 +1,6 @@
+(define y 10)
+(define (f x y) (+ x y (- 4124 123 x)))
+(define (f2 y) (+ y (* y y)))
+(define (f3 p) (f p y))
+(f (f2 5) (f3 12))
+(f (f2 3) (f3 90))
