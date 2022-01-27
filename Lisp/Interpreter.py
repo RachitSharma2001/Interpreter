@@ -153,10 +153,8 @@ class Interpreter():
         proc_name = proc_call_obj.get_proc_name()
         given_proc_args = proc_call_obj.get_passed_args()
         proc_frame = StackFrame(proc_name, self.call_stack.peek())
-        for args_index in range(len(expected_proc_args)):
-            exp_arg_name = expected_proc_args[args_index]
-            given_arg_value = self.generic_visit(given_proc_args[args_index])
-            proc_frame.add(exp_arg_name, given_arg_value)
+        for exp_arg_name, given_proc_arg in zip(expected_proc_args, given_proc_args):
+            proc_frame.add(exp_arg_name, self.generic_visit(given_proc_arg))
         return proc_frame
         
     def visit_VariableDeclaration(self, var_decl):

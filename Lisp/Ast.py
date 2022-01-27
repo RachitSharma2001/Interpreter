@@ -59,7 +59,6 @@ class ProcedureDeclaration(Ast):
         printable_repr += self.body.__repr__()
         return printable_repr
 
-
 class ProcedureCall(Ast):
     def __init__(self, proc_name, proc_args):
         super().__init__()
