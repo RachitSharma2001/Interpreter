@@ -1,0 +1,4 @@
+(define x 5)
+(define (f x) (* x x))
+(define (f2 y x d) (+ y y))
+(f2 x x f)

@@ -1,0 +1,2 @@
+(define f 5)
+(define (f2 x) (f x))

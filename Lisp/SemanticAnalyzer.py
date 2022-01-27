@@ -9,7 +9,7 @@ class SymbolTable(object):
         self.parent = parent
     
     def add_symbol(self, symbol):
-        self.table = symbol.add_to_table(self.table)
+        self.table[symbol.get_name()] = symbol
 
     def contains_symbol(self, symb_name):
         if symb_name in self.table.keys():
@@ -31,10 +31,6 @@ class Symbol(object):
     def __init__(self, name, type=None):
         self.name = name
         self.type = type
-    
-    def add_to_table(self, given_table):
-        given_table[self.name] = self.type
-        return given_table
 
     def get_name(self):
         return self.name 
@@ -50,10 +46,6 @@ class ProcSymbol(Symbol):
     def __init__(self, name, proc):
         super().__init__(name)
         self.proc = proc
-    
-    def add_to_table(self, given_table):
-        given_table[self.name] = self.proc
-        return given_table
     
     def get_proc(self):
         return self.proc
@@ -88,13 +80,15 @@ class SemanticAnalyzer():
             self.generic_visit(child)
     
     def visit_ProcedureDeclaration(self, proc_decl):
-        self.curr_scope.add_symbol(ProcSymbol(proc_decl.get_proc_name(), proc_decl))
+        proc_name = proc_decl.get_proc_name()
+        self.check_name_defined(proc_name)
+        self.curr_scope.add_symbol(ProcSymbol(proc_name, proc_decl))
         prev_scope = self.curr_scope
         self.curr_scope = SymbolTable(prev_scope)
         self.add_proc_args_to_scope(proc_decl)
         self.generic_visit(proc_decl.get_proc_body())
         self.curr_scope = prev_scope
-    
+
     def add_proc_args_to_scope(self, proc_decl):
         for arg in proc_decl.get_proc_args():
             self.curr_scope.add_symbol(VarSymbol(arg, None))
@@ -102,7 +96,9 @@ class SemanticAnalyzer():
     def visit_ProcedureCall(self, proc_call):
         proc_name = proc_call.get_proc_name()
         self.check_proc_name_in_scope(proc_name)
+        self.check_type(proc_name, 'ProcSymbol')
         self.check_call_args_match_exp_args(proc_name, proc_call)
+        self.visit_each_call_arg(proc_call.get_passed_args())
 
     def check_proc_name_in_scope(self, proc_name):
         if not self.curr_scope.contains_symbol(proc_name):
@@ -110,23 +106,35 @@ class SemanticAnalyzer():
 
     def check_call_args_match_exp_args(self, proc_name, proc_call):
         num_call_args = len(proc_call.get_passed_args())
-        num_expected_args = len(self.curr_scope.get_symbol(proc_name).get_proc_args())
+        num_expected_args = len(self.curr_scope.get_symbol(proc_name).get_proc().get_proc_args())
         if num_call_args != num_expected_args:
             raise SemanticError('{} expected {} arguments, but received {}'.format(proc_name, num_expected_args, num_call_args))
+
+    def visit_each_call_arg(self, proc_args):
+        for arg in proc_args:
+            self.generic_visit(arg)
 
     def visit_VariableDeclaration(self, var_decl):
         var_name = var_decl.get_var_name()
         var_type = var_decl.get_var_type()
         var_value = var_decl.get_var_value()
         self.generic_visit(var_value)
-        if self.curr_scope.contains_symbol(var_name):
-            raise SemanticError('"{}" has already been defined'.format(var_name))
+        self.check_name_defined(var_name)
         self.curr_scope.add_symbol(VarSymbol(var_name, var_type))
+
+    def check_name_defined(self, given_name):
+        if self.curr_scope.contains_symbol(given_name):
+            raise SemanticError('"{}" has already been defined'.format(given_name))
 
     def visit_SingleVariable(self, var):
         var_name = var.get_var_name()
         if not self.curr_scope.contains_symbol(var_name):
             raise SemanticError('"{}" referenced but not defined'.format(var_name))
+        self.check_type(var_name, 'VarSymbol')
+ 
+    def check_type(self, symbol_name, symbol_type):
+        if type(self.curr_scope.get_symbol(symbol_name)).__name__ != symbol_type:
+            raise SemanticError('"{}" was not declared as a {}'.format(symbol_name, symbol_type))
 
     def perform_numeric_operation(self, curr_sum, addend, operator):
         return

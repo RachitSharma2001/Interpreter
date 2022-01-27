@@ -1,0 +1,2 @@
+(define (f x) (+ x 30))
+(define (f2 x) (* f f))

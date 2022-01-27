@@ -1,0 +1,3 @@
+(define f 6)
+(define (f2 x) (* x x))
+(f 9)
