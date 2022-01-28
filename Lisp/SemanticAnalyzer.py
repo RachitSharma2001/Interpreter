@@ -8,6 +8,9 @@ class SymbolTable(object):
         self.table = {}
         self.parent = parent
     
+    def get_parent(self):
+        return self.parent
+
     def add_symbol(self, symbol):
         self.table[symbol.get_name()] = symbol
 
@@ -80,29 +83,38 @@ class SemanticAnalyzer():
             self.generic_visit(child)
     
     def visit_ProcedureDeclaration(self, proc_decl):
-        proc_name = proc_decl.get_proc_name()
-        self.check_name_defined(proc_name)
-        self.curr_scope.add_symbol(ProcSymbol(proc_name, proc_decl))
-        prev_scope = self.curr_scope
-        self.curr_scope = SymbolTable(prev_scope)
+        self.throw_error_if_in_scope(proc_decl.get_proc_name())
+        self.curr_scope.add_symbol(ProcSymbol(proc_decl.get_proc_name(), proc_decl))
+        self.create_new_scope()
         self.add_proc_args_to_scope(proc_decl)
         self.generic_visit(proc_decl.get_proc_body())
-        self.curr_scope = prev_scope
+        self.remove_curr_scope()
 
+    def create_new_scope(self):
+        self.curr_scope = SymbolTable(self.curr_scope)
+    
     def add_proc_args_to_scope(self, proc_decl):
         for arg in proc_decl.get_proc_args():
             self.curr_scope.add_symbol(VarSymbol(arg, None))
 
+    def remove_curr_scope(self):
+        self.curr_scope = self.curr_scope.get_parent()
+ 
+    def visit_VariableDeclaration(self, var_decl):
+        self.throw_error_if_in_scope(var_decl.get_var_name())
+        self.curr_scope.add_symbol(VarSymbol(var_decl.get_var_name(), var_decl.get_var_type()))
+        self.generic_visit(var_decl.get_var_value())
+
+    def throw_error_if_in_scope(self, given_name):
+        if self.curr_scope.contains_symbol(given_name):
+            raise SemanticError('"{}" has already been defined'.format(given_name))
+
     def visit_ProcedureCall(self, proc_call):
         proc_name = proc_call.get_proc_name()
-        self.check_proc_name_in_scope(proc_name)
+        self.throw_error_if_not_in_scope(proc_name)
         self.check_type(proc_name, 'ProcSymbol')
         self.check_call_args_match_exp_args(proc_name, proc_call)
         self.visit_each_call_arg(proc_call.get_passed_args())
-
-    def check_proc_name_in_scope(self, proc_name):
-        if not self.curr_scope.contains_symbol(proc_name):
-            raise SemanticError('Procedure "{}" referenced but never defined'.format(proc_name))
 
     def check_call_args_match_exp_args(self, proc_name, proc_call):
         num_call_args = len(proc_call.get_passed_args())
@@ -114,30 +126,18 @@ class SemanticAnalyzer():
         for arg in proc_args:
             self.generic_visit(arg)
 
-    def visit_VariableDeclaration(self, var_decl):
-        var_name = var_decl.get_var_name()
-        var_type = var_decl.get_var_type()
-        var_value = var_decl.get_var_value()
-        self.generic_visit(var_value)
-        self.check_name_defined(var_name)
-        self.curr_scope.add_symbol(VarSymbol(var_name, var_type))
-
-    def check_name_defined(self, given_name):
-        if self.curr_scope.contains_symbol(given_name):
-            raise SemanticError('"{}" has already been defined'.format(given_name))
-
     def visit_SingleVariable(self, var):
         var_name = var.get_var_name()
-        if not self.curr_scope.contains_symbol(var_name):
-            raise SemanticError('"{}" referenced but not defined'.format(var_name))
+        self.throw_error_if_not_in_scope(var_name)
         self.check_type(var_name, 'VarSymbol')
  
+    def throw_error_if_not_in_scope(self, name):
+        if not self.curr_scope.contains_symbol(name):
+            raise SemanticError('"{}" referenced but not defined'.format(name))
+
     def check_type(self, symbol_name, symbol_type):
         if type(self.curr_scope.get_symbol(symbol_name)).__name__ != symbol_type:
             raise SemanticError('"{}" was not declared as a {}'.format(symbol_name, symbol_type))
-
-    def perform_numeric_operation(self, curr_sum, addend, operator):
-        return
 
     def visit_UnaryOperator(self, unary_op):
         self.generic_visit(unary_op.get_child())
