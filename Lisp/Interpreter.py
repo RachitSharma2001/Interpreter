@@ -7,40 +7,41 @@ from Error import RuntimeError
 
 class CallStack(object):
     def __init__(self):
-        self.top = None
+        self.stack_of_frames = []
     
-    def push(self, given_frame):
-        self.top = given_frame
-    
-    def pop(self):
-        if self.top == None:
-            raise Exception('Pop called on call Stack with no stack frames')
-        self.top = self.top.get_frame_below()
+    def get_from_valid_scope(self, key):
+        if self._empty():
+            raise Exception('get_from_valid_scope() called on empty CallStack')
+        curr_stack_index = self.length()-1
+        while curr_stack_index >= 0:
+            curr_frame = self.stack_of_frames[curr_stack_index]
+            key_from_curr_stack = curr_frame.get(key)
+            if key_from_curr_stack != None:
+                return key_from_curr_stack
+            curr_stack_index = curr_frame.get_parent_frame_callstack_ind()
+        return None
 
     def peek(self):
-        return self.top
+        if self._empty():
+            raise Exception('Peek called on Call Stack with zero items')
+        return self.stack_of_frames[-1]
 
     def add_to_top_frame(self, key, value):
-        if self.top == None:
+        if self._empty():
             raise Exception('Call Stack is empty')
-        self.top.add(key, value)
+        self.stack_of_frames[-1].add(key, value)
+    
+    def _empty(self):
+        return self.length() == 0
+    
+    def length(self):
+        return len(self.stack_of_frames)
 
-    def get_from_valid_scope(self, key):
-        if self.top == None:
-            raise Exception('get_from_valid_scope() called on CallStack with no top frame')
-        top_scope_res = self.top.get(key)
-        if top_scope_res == None:
-            return self._get_from_global_scope(key)
-        return top_scope_res
+    def push(self, given_frame):
+        self.stack_of_frames.append(given_frame)
     
-    def _get_from_global_scope(self, key):
-        return self._get_global_scope().get(key)
-    
-    def _get_global_scope(self):
-        curr_scope = self.top
-        while curr_scope.get_frame_below() != None:
-            curr_scope = curr_scope.get_frame_below()
-        return curr_scope
+    def pop(self):
+        self.stack_of_frames.pop()
 
     def __repr__(self):
         stack_str = '------- Call Stack --------\n'
@@ -52,9 +53,9 @@ class CallStack(object):
         return stack_str
 
 class StackFrame(object):
-    def __init__(self, frame_name, frame_below):
+    def __init__(self, frame_name, parent_frame_ind):
         self.name = frame_name
-        self.frame_below = frame_below
+        self.parent_frame_ind = parent_frame_ind
         self.memory = {}
     
     def add(self, key, value):
@@ -65,9 +66,9 @@ class StackFrame(object):
             return self.memory[key]
         return None
 
-    def get_frame_below(self):
-        return self.frame_below
-    
+    def get_parent_frame_callstack_ind(self):
+        return self.parent_frame_ind
+
     def __repr__(self):
         frame_str = '--- {} ---\n'.format(self.name)
         for key in self.memory.keys():
@@ -78,6 +79,7 @@ class StackFrame(object):
 class Interpreter():
     def __init__(self):
         self.call_stack = CallStack()
+        self.proc_name_to_callstack_ind = {}
     
     def interpret(self, user_code):
         parser = Parser(Lexer(user_code))
@@ -95,7 +97,7 @@ class Interpreter():
         raise Exception('Given AST class {} does not exist'.format(type(ast).__name__))
     
     def visit_Root(self, root):
-        self.call_stack.push(StackFrame('Root', None))
+        self.call_stack.push(StackFrame('Root', -1))
         output_of_children = self.get_root_children_output(root.get_children())
         self.call_stack.pop()
         return output_of_children
@@ -139,6 +141,7 @@ class Interpreter():
 
     def visit_ProcedureDeclaration(self, proc_decl):
         self.call_stack.add_to_top_frame(proc_decl.get_proc_name(), proc_decl)
+        self.proc_name_to_callstack_ind[proc_decl.get_proc_name()] = self.call_stack.length()-1
         return 
 
     def visit_ProcedureCall(self, proc_call):
@@ -152,7 +155,7 @@ class Interpreter():
     def get_new_procedure_frame(self, proc_call_obj, expected_proc_args):
         proc_name = proc_call_obj.get_proc_name()
         given_proc_args = proc_call_obj.get_passed_args()
-        proc_frame = StackFrame(proc_name, self.call_stack.peek())
+        proc_frame = StackFrame(proc_name, self.proc_name_to_callstack_ind[proc_name])
         for exp_arg_name, given_proc_arg in zip(expected_proc_args, given_proc_args):
             proc_frame.add(exp_arg_name, self.generic_visit(given_proc_arg))
         return proc_frame

@@ -17,4 +17,4 @@ def interpret_code(code, test_num):
     print('Code Output: {}'.format(code_output))
     print('---- Done ----')
 
-interpret_code('(define (f2 x) (+ x x))(define x 5)(define (f y) (f2 10))(f x)', 1)
+interpret_code('(define x 9)(define y 8)(define (f x) (* x y))(f 5)(define (f2 y) (- y (f x) (f y)))(f2 3)(f2 5)(f2 x)(f2 y)(define (f3 x y) (f (+ (f y) (f x) (f2 x) (f2 y))))(f3 x y)(f3 8 1)(f3 100 4)(f3 18 21)', 1)
