@@ -81,7 +81,17 @@ class Interpreter():
         self.call_stack = CallStack()
         self.proc_name_to_callstack_ind = {}
     
-    def interpret(self, user_code):
+    def interpret_from_file(self, file_name):
+        return self.interpret_from_str(self.convert_file_content_to_str(file_name))
+   
+    def convert_file_content_to_str(self, file):
+        file_content = ""
+        with open(file) as opened_file:
+            for line in opened_file.readlines():
+                file_content += line
+        return file_content
+
+    def interpret_from_str(self, user_code):
         parser = Parser(Lexer(user_code))
         ast = parser.get_ast_from_code()
         semantic_analyzer = SemanticAnalyzer()

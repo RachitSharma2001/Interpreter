@@ -1,7 +1,6 @@
 import os
 import pytest
 from Interpreter import Interpreter
-from Error import ParserError
 
 def get_file_content_as_one(file_dir, file):
     file_content = ""
@@ -33,7 +32,7 @@ def is_interpreter_output_correct(expected_output, interpreter_output):
 
 def get_output_from_interpreter(interpreter, input_code):
     try:
-        output = interpreter.interpret(input_code)
+        output = interpreter.interpret_from_str(input_code)
         return output
     except:
         return None

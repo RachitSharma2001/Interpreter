@@ -29,7 +29,7 @@ def does_interpreter_raise_exception(code_with_error, type_of_error, interpreter
         raise Exception('{} not a valid error type'.format(type_of_error))
     try:
         with pytest.raises(class_of_error):
-            interpreter.interpret(code_with_error)
+            interpreter.interpret_from_str(code_with_error)
     except:
         return False
     else:
